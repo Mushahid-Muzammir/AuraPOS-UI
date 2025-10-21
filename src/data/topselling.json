@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "name": "Men's Running Shoes",
+    "price": 2900,
+    "unitPrice": 1450,
+    "quantity": 2,
+    "image": "../assets/sneakers.jpg"
+  },
+  {
+    "id": 3,
+    "name": "Men's Formal Leather Shoes",
+    "price": 7000,
+    "unitPrice": 3500,
+    "quantity": 2,
+    "image": "../assets/formal.jpg"
+  },
+  {
+    "id": 4,
+    "name": "Kids' School Shoes",
+    "price": 3000,
+    "unitPrice": 1500,
+    "quantity": 2,
+    "image": "../assets/kids.jpg"
+  },
+  {
+    "id": 2,
+    "name": "Black Formal Shoe Polish",  
+    "price": 1500,
+    "unitPrice": 1500,
+    "quantity": 1,
+    "image": "../assets/formal.jpg"
+  }
+]

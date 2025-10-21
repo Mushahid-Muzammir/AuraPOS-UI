@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "description": "Phone Stock Purchase",
+    "amount": 5000.00,
+    "date": "2025-06-01"
+  },
+  {
+    "id": 2,
+    "description": "Accessory Stock Purchase",
+    "amount": 1200.00,
+    "date": "2025-06-02"
+  },
+  {
+    "id": 3,
+    "description": "Packaging Materials",
+    "amount": 250.00,
+    "date": "2025-06-03"
+  },
+  {
+    "id": 4,
+    "description": "Advertising Campaign",
+    "amount": 800.00,
+    "date": "2025-06-04"
+  },
+  {
+    "id": 5,
+    "description": "Shop Rent",
+    "amount": 1500.00,
+    "date": "2025-06-05"
+  },
+  {
+    "id": 6,
+    "description": "Employee Salary",
+    "amount": 3000.00,
+    "date": "2025-06-06"
+  },
+  {
+    "id": 7,
+    "description": "Utility Bills",
+    "amount": 200.00,
+    "date": "2025-06-07"
+  },
+  {
+    "id": 8,
+    "description": "Phone Repair Cost",
+    "amount": 350.00,
+    "date": "2025-06-08"
+  },
+  {
+    "id": 9,
+    "description": "Website Maintenance",
+    "amount": 400.00,
+    "date": "2025-06-09"
+  },
+  {
+    "id": 10,
+    "description": "Office Supplies",
+    "amount": 150.00,
+    "date": "2025-06-10"
+  }
+]

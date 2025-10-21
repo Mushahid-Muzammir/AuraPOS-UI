@@ -1,0 +1,26 @@
+[
+    {
+            "id": 1,
+            "chequeNumber": "CHQ001",
+            "customerName": "John Doe",
+            "amount": 5000.00,
+            "issueDate": "2025-08-15",
+            "dueDate": "2025-08-25",
+            "type": "receive",
+            "status": "pending",
+            "bankName": "Commercial Bank",
+            "description": "Payment for Invoice #INV001"
+        },
+        {
+            "id": 2,
+            "chequeNumber": "CHQ002",
+            "customerName": "ABC Suppliers",
+            "amount": 15000.00,
+            "issueDate": "2025-08-20",
+            "dueDate": "2025-08-30",
+            "type": "give",
+            "status": "pending",
+            "bankName": "Sampath Bank",
+            "description": "Payment for raw materials"
+        }
+]

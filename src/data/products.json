@@ -1,0 +1,83 @@
+[
+  {
+    "id": 1,
+    "name": "Men's Running Shoes",
+    "category": "Men's Footwear",
+    "price": 14500,
+    "stock": 25,
+    "image": "../assets/sneakers.jpg",
+    "description": "Lightweight running shoes with breathable mesh upper and cushioned sole for daily workouts."
+  },
+  {
+    "id": 2,
+    "name": "Women's Casual Sneakers",
+    "category": "Women's Footwear",
+    "price": 13500,
+    "stock": 30,
+    "image": "../assets/heels.jpg",
+    "description": "Trendy casual sneakers perfect for everyday wear with comfortable padding and durable outsole."
+  },
+  {
+    "id": 3,
+    "name": "Kids' School Shoes",
+    "category": "Kids' Footwear",
+    "price": 7500,
+    "stock": 40,
+    "image": "../assets/kids.jpg",
+    "description": "Durable leather school shoes designed for comfort and long-lasting performance."
+  },
+  {
+    "id": 4,
+    "name": "Men's Formal Leather Shoes",
+    "category": "Formal Shoes",
+    "price": 18500,
+    "stock": 20,
+    "image": "../assets/formal.jpg",
+    "description": "Elegant full-grain leather shoes suitable for office and formal occasions."
+  },
+  {
+    "id": 5,
+    "name": "Women's Heeled Sandals",
+    "category": "Women's Footwear",
+    "price": 12500,
+    "stock": 28,
+    "image": "../assets/heels.jpg",
+    "description": "Stylish heeled sandals with ankle strap and cushioned insole for enhanced comfort."
+  },
+  {
+    "id": 6,
+    "name": "Men's Flip-Flops",
+    "category": "Flip-Flops",
+    "price": 3500,
+    "stock": 60,
+    "image": "../assets/sneakers.jpg",
+    "description": "Soft rubber flip-flops ideal for beach or casual wear, featuring anti-slip sole design."
+  }, 
+  {
+    "id": 8,
+    "name": "Leather Boots",
+    "category": "Boots",
+    "price": 19500,
+    "stock": 15,
+    "image": "../assets/boots.jpg",
+    "description": "High-quality leather boots with durable soles, perfect for both style and rugged use."
+  },
+  {
+    "id": 7,
+    "name": "Sports Training Shoes",
+    "category": "Sports Shoes",
+    "price": 16000,
+    "stock": 22,
+    "image": "../assets/sneakers.jpg",
+    "description": "Multi-purpose sports shoes built for training, gym workouts, and running sessions."
+  },
+  {
+    "id": 9,
+    "name": "Women's Ballet Flats",
+    "category": "Casual Shoes",
+    "price": 9800,
+    "stock": 35,
+    "image": "../assets/heels.jpg",
+    "description": "Elegant and comfortable ballet flats with soft lining and flexible rubber outsole."
+  }
+]

@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "name": "Richardo Wilson",
+    "image": "https://source.unsplash.com/featured/?man,portrait"
+  },
+  {
+    "id": 2,
+    "name": "Sophia Martinez",
+    "image": "https://source.unsplash.com/featured/?woman,portrait"
+  },
+  {
+    "id": 3,
+    "name": "James Carter",
+    "image": "https://source.unsplash.com/featured/?male,portrait"
+  }
+]

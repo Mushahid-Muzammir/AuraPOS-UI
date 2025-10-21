@@ -1,0 +1,23 @@
+[
+    {
+        "title": "Number of Transactions",
+        "value": 30,
+        "percentage": 5
+    },
+    {
+        "title": "Total Revenue",
+        "value": 9450,
+        "percentage": 5.8
+    },  
+    {
+        "title": "Total Sales",
+        "value": 23560,
+        "percentage": 20
+    },
+    {
+        "title": "Total Customers",
+        "value": 235,
+        "percentage": 12
+    }
+
+]
