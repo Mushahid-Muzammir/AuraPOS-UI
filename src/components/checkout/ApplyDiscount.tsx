@@ -7,9 +7,9 @@ const ApplyDiscount = ({ onSetDiscount }: ApplyDisCountProps) => {
 
     const discountData = [
         { type: "none", description: "No Discount", value : 0  },
-        { type: "seasonal", description: "Seasonal Discount - 10%", value: 10 },
-        { type: "clearance", description: "Clearance Sale - 20%", value: 20 },
-        { type: "loyalty", description: "Loyalty Discount - 5%", value: 5 },
+        { type: "seasonal", description: "Seasonal Discount", value: 10 },
+        { type: "clearance", description: "Clearance Sale", value: 20 },
+        { type: "loyalty", description: "Loyalty Discount", value: 5 },
     ]
 
     const handleDiscountFormSubmit = (e : React.FormEvent<HTMLFormElement>) => {
@@ -18,8 +18,7 @@ const ApplyDiscount = ({ onSetDiscount }: ApplyDisCountProps) => {
     }
 
   return (
-    <div className="w-full flex flex-col gap-2 p-4 bg-white">
-        <h2 className="text-lg font-bold mb-2">Discount Info</h2>
+    <div className="w-full flex flex-col gap-2 p-2 bg-white">
         <>
           <form
           onSubmit={handleDiscountFormSubmit}
@@ -46,7 +45,7 @@ const ApplyDiscount = ({ onSetDiscount }: ApplyDisCountProps) => {
               type="submit"
               className="w-full bg-blue-200 text-primary font-semibold p-2 rounded-2xl"
             >
-              Submit
+              Set Discount
             </button>
           </form>
         </>

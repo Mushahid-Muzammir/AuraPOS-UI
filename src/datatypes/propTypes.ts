@@ -3,9 +3,7 @@ import type { NewCustomer, ExistingCustomer } from "./customerTypes";
 
 export type TotalProps = {
   subtotal: number;
-  discount: number;
   tax: number;
-  total: number;
 }
 
 export type OrderProps = {

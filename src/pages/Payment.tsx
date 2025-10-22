@@ -6,6 +6,7 @@ import type { PaymentProps } from "../datatypes/propTypes.ts";
 import cash from "../assets/cash.svg";
 import card from "../assets/card.svg";
 import koko from "../assets/koko.svg";
+// import split from "../assets/split.svg";
 import type { Discount, PaymentMethods } from "../datatypes/saleTypes.ts";
 import  ApplyDiscount from "../components/checkout/ApplyDiscount.tsx";
 
@@ -300,7 +301,11 @@ const Payment = () => {
               </div>
 
               {/* CONFIRM PAYMENT Button */}
-              <div className="p-6">
+              <div className="flex gap-4 p-6">
+                <button
+                  className="w-full py-4 bg-gray-200 text-gray-600 font-bold rounded-lg transition-colors">
+                 Enable Split Payment
+                </button>
                 <button
                 onClick={handleConfirmPayment}
                 disabled={!selectedPayment}
@@ -318,13 +323,14 @@ const Payment = () => {
           {/* Payment Summary Sidebar */}
           <div className="w-[25%] h-[100%] bg-white flex flex-col gap-4 justify-between items-center border px-2 py-4 rounded-lg">
             {customer && (
-          <div className="bg-blue-50 p-4 rounded-lg mb-6">
+          <div className="w-full flex flex-col gap-1 bg-blue-50 p-4">
             <h3 className="font-semibold mb-2">Customer Information</h3>
-            <p className="text-sm">Name: {customer.name}</p>
-            <p className="text-sm">Phone: {customer.phone}</p>
+            <p className="text-base">Name: {customer.name}</p>
+            <p className="text-base">Phone: {customer.phone}</p>
+            <p className="text-base">Loyalty Points: {customer.loyaltyPoints}</p>
           </div>
         )}
-            <div className="w-full px-4  rounded-lg shadow-lg border border-grey-400">
+            <div className="w-full px-4 shadow-lg border border-grey-400">
               <ApplyDiscount onSetDiscount= {setDiscountPercentage} />
             </div>
 
@@ -347,7 +353,7 @@ const Payment = () => {
                   <div className="text-gray-600">Service Charge</div>
                   <div className="text-gray-600">Rs {((calculations.subtotal * 0.025)).toFixed(2)}</div>
                 </div>
-                <div className="flex flex-row justify-between w-full mt-4">
+                <div className="flex flex-row justify-between w-full">
                   <div className="font-bold text-2xl">Total</div>
                   <div className="text-2xl font-bold">Rs {total.toFixed(2)}</div>
                 </div>

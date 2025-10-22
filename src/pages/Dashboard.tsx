@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import TopBar from "../components/common/TopBar";
 import SideBar from "../components/common/SideBar";
@@ -27,6 +27,10 @@ const Dashboard = () => {
   );
   const [cart, setCart] = useState([] as Cart[]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+  if (customer) setShowCustomerForm(false); // auto-close form
+}, [customer]);
 
   const handleProceedToCheckout = () => {
     if (cart.length === 0) return;
@@ -131,10 +135,8 @@ const Dashboard = () => {
       0
     );
 
-    const discount = customer ? subtotal * 0.05 : 0;
     const tax = 0;
-    const total = subtotal - discount + tax;
-    return { subtotal, discount, tax, total };
+    return { subtotal, tax };
   }, [cart, customer]);
 
   const filteredProducts = products.filter((product) => {
@@ -149,7 +151,6 @@ const Dashboard = () => {
   });
 
   const outOfStockCount = products.filter((p) => p.stock === 0).length;
-
 
   return (
     <div className="flex flex-row">
