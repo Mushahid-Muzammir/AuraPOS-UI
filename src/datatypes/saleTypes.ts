@@ -23,3 +23,9 @@ export type Discount = {
 
 export type PaymentMethods = "cash" | "card" | "koko";
 
+export type SplitPayment = {
+    id: number;
+    method: PaymentMethods;
+    amount: number;
+    status: "pending" | "completed" | "failed";
+}

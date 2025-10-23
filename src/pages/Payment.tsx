@@ -7,13 +7,16 @@ import cash from "../assets/cash.svg";
 import card from "../assets/card.svg";
 import koko from "../assets/koko.svg";
 // import split from "../assets/split.svg";
-import type { Discount, PaymentMethods } from "../datatypes/saleTypes.ts";
+import type { Discount, PaymentMethods, SplitPayment } from "../datatypes/saleTypes.ts";
 import  ApplyDiscount from "../components/checkout/ApplyDiscount.tsx";
 
 
 const Payment = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const paymentData = location.state as PaymentProps;
+  const { cart, customer, calculations } = paymentData;
+
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethods>('cash');
   const [showModal, setShowModal] = useState(false);
   const [cashReceived, setCashReceived] = useState("");
@@ -22,27 +25,27 @@ const Payment = () => {
   const [kokoStatus, setKokoStatus] = useState<
     "waiting" | "success" | "failed" | null
   >(null);
+  const [splitPaymentEnabled, setSplitPaymentEnabled] = useState(false);
+  const [splitPayments, setSplitPayments] = useState<SplitPayment[]>([]);
+  const [currentSplitAmount, setCurrentSplitAmount] = useState(""); 
+  const [showSplitModal, setShowSplitModal] = useState(false);
 
-  const paymentData = location.state as PaymentProps;
-    const { cart, customer, calculations } = paymentData;
-
+  const [finalCart, setFinalCart] = useState(cart || []);
   const [discountPercentage, setDiscountPercentage] = useState<Discount["value"]>(0);
   const [discountAmount, setDiscountAmount] = useState(0);
 
   const removeItem = (id: number) => {
-    cart.filter((item) => item.id !== id);
+    const updatedCart = finalCart.filter((item) => item.id !== id);
+    setFinalCart(updatedCart);
   };
 
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  const subtotal = finalCart.reduce((sum, item) => sum + item.price * item.quantity,0);
   const serviceCharge = subtotal * 0.025; 
-  
   const total = subtotal + serviceCharge - discountAmount;
 
+  const totalPaid = splitPayments.filter(p => p.status === "completed").reduce((sum, p) => sum + p.amount, 0);
+  const remainingAmount = total - totalPaid;
 
-  // Redirect if no data
   useEffect(() => {
     if (!paymentData || !paymentData.cart || paymentData.cart.length === 0) {
       navigate("/home");
@@ -54,35 +57,55 @@ const Payment = () => {
   }
   }, [paymentData, navigate,  discountPercentage, total]);
 
-  
-
   const handlePaymentSelect = (method: PaymentMethods) => {
     setSelectedPayment(method);
   };
 
   const handleConfirmPayment = () => {
     if (!selectedPayment) return;
+    
+    if (splitPaymentEnabled && !currentSplitAmount) {
+      alert("Please enter the amount for this payment");
+      return;
+    }
+    
+    if (splitPaymentEnabled) {
+      const amount = parseFloat(currentSplitAmount);
+      if (amount <= 0 || amount > remainingAmount) {
+        alert(`Amount must be between 0 and ${formatCurrency(remainingAmount)}`);
+        return;
+      }
+    }
     setShowModal(true);
   };
 
   const handleCashPayment = () => {
     const received = parseFloat(cashReceived);
-    if (received >= total) {
-      alert(
-        "💵 Cash Drawer Opening...\n\nPayment Successful!\nChange: LKR " +
-          (received - total).toFixed(2)
-      );
-      resetPayment();
+    if(received >= (splitPaymentEnabled ? parseFloat(currentSplitAmount) : total))
+    {
+      if (splitPaymentEnabled) {
+      const currentPayment = splitPayments.find(p => p.status === "pending");
+      if(currentPayment) completeSplitPayment(currentPayment.id);
+      } else {
+        alert('💵 Cash Drawer Opening...\n\nPayment Successful!\nChange: LKR ' + (received - total).toFixed(2));
+        resetPayment();
+      }
     }
   };
 
   const change = parseFloat(cashReceived || "0") - total;
 
   const handleCardPayment = () => {
-    // Simulate card processing
-    setTimeout(() => {
-      alert("✅ Card Payment Successful!\n\nTransaction approved.");
-      resetPayment();
+  setTimeout(() => {
+      if (splitPaymentEnabled) {
+        const currentPayment = splitPayments.find(p => p.status === 'pending');
+        if (currentPayment) {
+          completeSplitPayment(currentPayment.id);
+        }
+      } else {
+        alert('✅ Card Payment Successful!\n\nTransaction approved.');
+        resetPayment();
+      }
     }, 2000);
   };
 
@@ -105,6 +128,47 @@ const Payment = () => {
     }, 3000);
   };
 
+  const addSplitPayment = () => {
+    if (!selectedPayment || !currentSplitAmount) return;
+
+    const amount = parseFloat(currentSplitAmount);
+    if (amount <= 0 || amount > remainingAmount) {
+      alert(`Amount must be between 0 and ${formatCurrency(remainingAmount)}`);
+      return;
+    }
+    const newPayment: SplitPayment = {
+      id: Date.now(),
+      method: selectedPayment,
+      amount: amount,
+      status: "pending"
+    };
+  
+    setSplitPayments(prev => [...prev, newPayment]);
+    setCurrentSplitAmount("");
+    setShowSplitModal(true);
+  };
+
+  const completeSplitPayment = (paymentId: number) => {
+    setSplitPayments(payments =>
+        payments.map(p => p.id === paymentId ? { ...p, status: 'completed' as const } : p)
+      );
+      setShowSplitModal(false);
+      setSelectedPayment('cash');
+      
+      const updatedPayments = splitPayments.map(p => 
+        p.id === paymentId ? { ...p, status: 'completed' as const } : p
+      );
+      const allComplete = updatedPayments.every(p => p.status === 'completed');
+      const totalPaidAfter = updatedPayments.reduce((sum, p) => sum + p.amount, 0);
+      
+      if (allComplete && totalPaidAfter >= total) {
+        setTimeout(() => {
+          alert('✅ All split payments completed successfully!');
+          resetPayment();
+        }, 500);
+      }
+  }; 
+
   const resetPayment = () => {
     setShowModal(false);
     setSelectedPayment("cash");
@@ -112,20 +176,29 @@ const Payment = () => {
     setKokoPhone("");
     setKokoProcessing(false);
     setKokoStatus(null);
-    cart.length = 0; 
+    setSplitPaymentEnabled(false);
+    setSplitPayments([]);
+    setCurrentSplitAmount("");
     navigate("/home");
   };
 
-  const formatCurrency = (amount: number) => {
-    return `LKR ${amount.toFixed(2)}`;
-  };
+const removeSplitPayment = (id: number) => {
+  setSplitPayments(prev => prev.filter(p => p.id !== id));
+};
 
-  const quickCashAmounts = [
-    { label: "5,000", value: 5000 },
-    { label: "10,000", value: 10000 },
-    { label: "20,000", value: 20000 },
-    { label: "Exact", value: total },
-  ];
+const formatCurrency = (amount: number) => {
+  return `LKR ${amount.toFixed(2)}`;
+};
+
+const quickCashAmounts = [
+  { label: "5,000", value: 5000 },
+  { label: "10,000", value: 10000 },
+  { label: "20,000", value: 20000 },
+  { 
+    label: "Exact", 
+    value: splitPaymentEnabled ? remainingAmount : total // 👈 FIXED
+  },
+];
 
   return (
     <div className="flex flex-row">
@@ -160,7 +233,7 @@ const Payment = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {cart.map((item) => (
+                    {finalCart.map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
@@ -199,12 +272,33 @@ const Payment = () => {
                 </table>
               </div>
 
+              {/* Split Payment Amount Input - Show when split is enabled */}
+              {splitPaymentEnabled && remainingAmount > 0 && showSplitModal && (
+                <div className="p-6 bg-blue-50 border-t border-b border-gray-200">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Enter Amount for This Payment
+                  </label>
+                  <input
+                    type="number"
+                    value={currentSplitAmount}
+                    onChange={(e) => setCurrentSplitAmount(e.target.value)}
+                    placeholder="0.00"
+                    max={remainingAmount}
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-lg font-semibold"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">
+                    Remaining: {formatCurrency(remainingAmount)}
+                  </p>
+                </div>
+              )}
+
               {/* Payment Methods Section */}
               <div className="p-6 bg-gray-50 border-t border-gray-200">
                 <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">
                   Select Payment Method
                 </h3>
                 <div className="grid grid-cols-3 gap-4">
+
                   {/* Cash */}
                   <button
                     onClick={() => handlePaymentSelect("cash")}
@@ -297,24 +391,32 @@ const Payment = () => {
                       </span>
                     </div>
                   </button>
+
                 </div>
               </div>
 
               {/* CONFIRM PAYMENT Button */}
               <div className="flex gap-4 p-6">
                 <button
-                  className="w-full py-4 bg-gray-200 text-gray-600 font-bold rounded-lg transition-colors">
-                 Enable Split Payment
+                onClick={() => {setSplitPaymentEnabled(!splitPaymentEnabled); setShowSplitModal(!showSplitModal);}}
+                  className={`w-full py-4 font-bold rounded-lg transition-colors
+                    ${ splitPaymentEnabled ? "bg-green-500 text-white hover:bg-green-600" : "bg-gray-200 text-gray-600 hover:bg-gray-300"}`}
+                >
+                 { splitPaymentEnabled ? "SPLIT PAYMENT ACTIVE ✅" : "ENABLE SPLIT PAYMENT"}
                 </button>
                 <button
-                onClick={handleConfirmPayment}
-                disabled={!selectedPayment}
-                className={`w-full py-4 font-bold rounded-lg transition-colors ${
-                  selectedPayment
-                    ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}>
-                 CONFIRM PAYMENT
+                  onClick={splitPaymentEnabled ? addSplitPayment : handleConfirmPayment}
+                  disabled={
+                    !selectedPayment || 
+                    (splitPaymentEnabled && (!currentSplitAmount || parseFloat(currentSplitAmount) <= 0 || parseFloat(currentSplitAmount) > remainingAmount))
+                  }
+                  className={`w-full py-4 font-bold rounded-lg transition-colors ${
+                    selectedPayment && (!splitPaymentEnabled || (currentSplitAmount && parseFloat(currentSplitAmount) > 0))
+                      ? "bg-blue-600 hover:bg-blue-700 text-white cursor-pointer"
+                      : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  }`}
+                >
+                  {splitPaymentEnabled ? "ADD PAYMENT" : "CONFIRM PAYMENT"}
                 </button>
               </div>
             </div>
@@ -323,54 +425,89 @@ const Payment = () => {
           {/* Payment Summary Sidebar */}
           <div className="w-[25%] h-[100%] bg-white flex flex-col gap-4 justify-between items-center border px-2 py-4 rounded-lg">
             {customer && (
-          <div className="w-full flex flex-col gap-1 bg-blue-50 p-4">
-            <h3 className="font-semibold mb-2">Customer Information</h3>
-            <p className="text-base">Name: {customer.name}</p>
-            <p className="text-base">Phone: {customer.phone}</p>
-            <p className="text-base">Loyalty Points: {customer.loyaltyPoints}</p>
-          </div>
-        )}
+              <div className="w-full flex flex-col gap-1 bg-blue-50 p-4">
+                <h3 className="font-semibold mb-2">Customer Information</h3>
+                <p className="text-base">Name: {customer.name}</p>
+                <p className="text-base">Phone: {customer.phone}</p>
+                <p className="text-base">Loyalty Points: {customer.loyaltyPoints}</p>
+              </div>
+            )}
             <div className="w-full px-4 shadow-lg border border-grey-400">
               <ApplyDiscount onSetDiscount= {setDiscountPercentage} />
             </div>
 
+                 {splitPayments.length > 0 && (
+                      <div className="space-y-2 mb-4">
+                        {splitPayments.map((payment, index) => (
+                          <div 
+                            key={payment.id} 
+                            className={`flex items-center justify-between p-3 rounded-lg border ${
+                              payment.status === 'completed' 
+                                ? 'bg-green-50 border-green-200' 
+                                : 'bg-gray-50 border-gray-200'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              
+                              <div>
+                                <p className="text-sm font-semibold text-gray-800 capitalize">
+                                  {payment.method}
+                                </p>
+                                <p className="text-xs text-gray-500">Payment #{index + 1}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-gray-800">{formatCurrency(payment.amount)}</span>
+                              {payment.status === 'completed' ? (
+                                <span className="text-green-600">✅</span>
+                              ) : (
+                                <button
+                                  onClick={() => removeSplitPayment(payment.id)}
+                                  className="text-red-400 hover:text-red-600"
+                                >
+                                  🗑️
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
-              <div className="w-full flex flex-col gap-4 p-6 border-t border-gray-200">
-                
-                <div className="flex flex-row justify-between w-full">
-                  <div className="text-gray-600">Subtotal</div>
-                  <div className="text-gray-600">Rs {calculations.subtotal.toFixed(2)}</div>
-                </div>
-                <div className="flex flex-row justify-between w-full">
-                  <div className="text-green-400">Discount ({discountPercentage}% )</div>
-                  <div className="text-green-400">- Rs {discountAmount.toFixed(2)}</div>
-                </div>
-                <div className="flex flex-row justify-between w-full">
-                  <div className="text-red-400">Tax</div>
-                  <div className="text-red-400">+ Rs {calculations.tax.toFixed(2)}</div>
-                </div>
-                <div className="flex flex-row justify-between w-full pb-4 border-b">
-                  <div className="text-gray-600">Service Charge</div>
-                  <div className="text-gray-600">Rs {((calculations.subtotal * 0.025)).toFixed(2)}</div>
-                </div>
-                <div className="flex flex-row justify-between w-full">
-                  <div className="font-bold text-2xl">Total</div>
-                  <div className="text-2xl font-bold">Rs {total.toFixed(2)}</div>
-                </div>
-
+            <div className="w-full flex flex-col gap-4 p-6 border-t border-gray-200">               
+              <div className="flex flex-row justify-between w-full">
+                <div className="text-gray-600">Subtotal</div>
+                <div className="text-gray-600">Rs {calculations.subtotal.toFixed(2)}</div>
+              </div>
+              <div className="flex flex-row justify-between w-full">
+                <div className="text-green-400">Discount ({discountPercentage}% )</div>
+                <div className="text-green-400">- Rs {discountAmount.toFixed(2)}</div>
+              </div>
+              <div className="flex flex-row justify-between w-full">
+                <div className="text-red-400">Tax</div>
+                <div className="text-red-400">+ Rs {calculations.tax.toFixed(2)}</div>
+              </div>
+              <div className="flex flex-row justify-between w-full pb-4 border-b">
+                <div className="text-gray-600">Service Charge</div>
+                <div className="text-gray-600">Rs {((calculations.subtotal * 0.025)).toFixed(2)}</div>
+              </div>
+              <div className="flex flex-row justify-between w-full">
+                <div className="font-bold text-2xl">Total</div>
+                <div className="text-2xl font-bold">Rs {total.toFixed(2)}</div>
+              </div>
             </div>
 
             <div className="w-full p-6 border-t border-gray-200">
               <button
                 onClick={resetPayment}
                 className="w-full py-4 bg-red-500 text-white font-bold rounded-lg transition-colors">
-                 CANCEL SALE 
+                CANCEL SALE 
               </button>
             </div>
-          </div>
+          </div> 
         </div>
 
-        {showModal && (
+        {showModal  && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white max-w-lg w-full">
               
@@ -382,15 +519,18 @@ const Payment = () => {
                       <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                         <img src={cash} className="object-cover" />
                       </div>
-                      <h3 className="text-2xl font-bold text-gray-800">
-                        Cash Payment
-                      </h3>
+                      <div>
+                        <h3 className="text-2xl font-bold text-gray-800">Cash Payment</h3>
+                        {splitPaymentEnabled && <p className="text-sm text-gray-500">Split Payment</p>}
+                      </div>
                     </div>
                     <div className="bg-blue-50 rounded-lg p-4">
-                      <p className="text-sm text-gray-600 mb-1">Total Amount</p>
+                      <p className="text-sm text-gray-600 mb-1">
+                        {splitPaymentEnabled ? "Payment Amount" : "Total Amount"}
+                      </p>
                       <p className="text-3xl font-bold text-blue-600">
-                        {total.toFixed(2)}
-                        </p>
+                        {formatCurrency(splitPaymentEnabled ? parseFloat(currentSplitAmount) : total)}
+                      </p>
                     </div>
                   </div>
 
@@ -401,10 +541,10 @@ const Payment = () => {
                       </label>
                       <input
                         type="number"
-                        value={cashReceived}
-                        onChange={(e) => setCashReceived(e.target.value)}
+                        value={cashReceived} 
+                        onChange={(e) => setCashReceived(e.target.value)} 
                         placeholder="0.00"
-                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg"
                       />
                     </div>
 
@@ -422,7 +562,7 @@ const Payment = () => {
                       ))}
                     </div>
 
-                    {cashReceived && parseFloat(cashReceived) >= total && (
+                    {parseFloat(cashReceived) >= total && (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                         <p className="text-sm text-green-700 font-semibold mb-1">
                           Change to Return
@@ -443,7 +583,7 @@ const Payment = () => {
                       <button
                         onClick={handleCashPayment}
                         disabled={
-                          !cashReceived || parseFloat(cashReceived) < total
+                          (!cashReceived || parseFloat(cashReceived) < total) && !splitPaymentEnabled
                         }
                         className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${
                           cashReceived && parseFloat(cashReceived) >= total
@@ -471,9 +611,11 @@ const Payment = () => {
                       </h3>
                     </div>
                     <div className="bg-blue-50 rounded-lg p-4">
-                      <p className="text-sm text-gray-600 mb-1">Total Amount</p>
+                      <p className="text-sm text-gray-600 mb-1">
+                        {splitPaymentEnabled ? "Payment Amount" : "Total Amount"}
+                      </p>
                       <p className="text-3xl font-bold text-blue-600">
-                       Rs. {total.toFixed(2)}
+                        {formatCurrency(splitPaymentEnabled ? remainingAmount : total)}
                       </p>
                     </div>
                   </div>
