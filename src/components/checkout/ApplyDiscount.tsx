@@ -43,7 +43,7 @@ const ApplyDiscount = ({ onSetDiscount }: ApplyDisCountProps) => {
                 onSetDiscount(discountPercentage || 0);
               }}
               type="submit"
-              className="w-full bg-blue-200 text-primary font-semibold p-2 rounded-2xl"
+              className="w-full bg-primary text-white font-semibold p-2"
             >
               Set Discount
             </button>

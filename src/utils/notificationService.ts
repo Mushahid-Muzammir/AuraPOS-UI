@@ -27,7 +27,7 @@ export class NotificationService {
       id,
       timestamp: new Date()
     };
-
+    // unShift adds to the beginning of the array
     this.notifications.unshift(fullNotification);
     this.notifyListeners();
 

@@ -11,7 +11,7 @@ interface SplitPaymentManagerProps {
   remainingAmount: number;
   totalAmount: number;
   selectedPayment: PaymentMethods;
-  onPaymentSelect: (method: PaymentMethods) => void;
+  onPaymentSelect?: (method: PaymentMethods) => void;
 }
 
 const SplitPaymentManager: React.FC<SplitPaymentManagerProps> = ({
@@ -21,8 +21,7 @@ const SplitPaymentManager: React.FC<SplitPaymentManagerProps> = ({
   onCompletePayment,
   remainingAmount,
   totalAmount,
-  selectedPayment,
-  onPaymentSelect
+  selectedPayment
 }) => {
   const [currentAmount, setCurrentAmount] = useState('');
   const [errors, setErrors] = useState<{ amount?: string }>({});
@@ -33,8 +32,8 @@ const SplitPaymentManager: React.FC<SplitPaymentManagerProps> = ({
   };
 
   const handleAddPayment = () => {
-    const amount = parseFloat(currentAmount);
-    const validation = validateSplitPayment(amount, remainingAmount, totalAmount);
+    const amountReceived = parseFloat(currentAmount);
+    const validation = validateSplitPayment(amountReceived, remainingAmount, totalAmount);
     
     if (!validation.isValid) {
       setErrors({ amount: validation.error });
@@ -44,7 +43,7 @@ const SplitPaymentManager: React.FC<SplitPaymentManagerProps> = ({
 
     onAddPayment({
       method: selectedPayment,
-      amount: amount
+      amount: amountReceived
     });
 
     setCurrentAmount('');

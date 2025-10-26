@@ -284,7 +284,7 @@ const Dashboard = () => {
               ))}
             </div>
           </div>
-
+ 
           <div className="w-[30%] h-[100%] bg-white flex flex-col gap-2 items-center border px-2 py-4 m-4 rounded-lg ">
             <button
               onClick={() => setShowCustomerForm(!showCustomerForm)}

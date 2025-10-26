@@ -42,6 +42,11 @@ const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
   };
 
   const handleConfirm = () => {
+    if(isSplitPayment){
+      const amount = parseFloat(targetAmount.toString());
+      onConfirm(amount);
+      return;
+    }
     const validation = validateAmount(cashReceived);
     if (!validation.isValid) {
       setErrors({ amount: validation.error });
@@ -74,7 +79,7 @@ const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white max-w-lg w-full rounded-lg shadow-xl">
+      <div className="bg-white max-w-xl w-full rounded-lg shadow-xl">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
@@ -102,7 +107,7 @@ const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             </label>
             <input
               type="number"
-              value={cashReceived}
+              value={isSplitPayment ? targetAmount : cashReceived}
               onChange={(e) => handleAmountChange(e.target.value)}
               placeholder="0.00"
               className={`w-full px-4 py-3 border-2 rounded-lg text-lg font-semibold ${
@@ -140,20 +145,20 @@ const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
           <div className="flex gap-3 pt-4">
             <button
               onClick={onClose}
-              className="flex-1 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg font-semibold transition-colors"
+              className="flex-1 py-3 bg-gray-200 hover:bg-gray-300 font-semibold transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleConfirm}
-              disabled={!hasEnoughCash}
-              className={`flex-1 py-3 rounded-lg font-semibold transition-colors ${
-                hasEnoughCash
+              disabled={!isSplitPayment ? !hasEnoughCash : false}
+              className={`flex-1 py-3 font-semibold transition-colors ${
+                !isSplitPayment && !hasEnoughCash
                   ? "bg-green-600 hover:bg-green-700 text-white"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
             >
-              Complete Payment
+              Open Drawer
             </button>
           </div>
         </div>

@@ -5,7 +5,7 @@ import { notificationService } from '../../utils/notificationService';
 interface CardPaymentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: (amount: number) => void;
   totalAmount: number;
   isSplitPayment?: boolean;
   splitAmount?: number;
@@ -34,12 +34,12 @@ const CardPaymentModal: React.FC<CardPaymentModalProps> = ({
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       setProcessingStep('completed');
+      onConfirm(targetAmount);
       
       // Simulate success delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 3000));
       
       notificationService.success('Payment Successful', 'Card payment processed successfully');
-      onConfirm();
     } catch (error) {
       notificationService.error('Payment Failed', 'Card payment could not be processed');
       setIsProcessing(false);
