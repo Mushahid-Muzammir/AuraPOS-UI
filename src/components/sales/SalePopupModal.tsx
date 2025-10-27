@@ -1,5 +1,10 @@
 
-export const Popup = ({ onClose, onConfirm }) => {
+interface PopupProps {
+  onClose: () => void;
+  onConfirm: () => void;
+}
+
+export const Popup = ({ onClose, onConfirm }: PopupProps) => {
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white rounded-2xl shadow-xl p-6 w-[90%] max-w-md">

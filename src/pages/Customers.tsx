@@ -17,8 +17,7 @@ const Customers = () => {
   const filteredCustomers = useMemo(() => {
     return customers.filter((item) => {
       const matchSearch =
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.email.toString().includes(searchTerm);
+        item.name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchStart = startDate
         ? new Date(item.lastVisit) >= new Date(startDate)
         : true;
