@@ -149,13 +149,14 @@ const CashPaymentModal: React.FC<CashPaymentModalProps> = ({
             >
               Cancel
             </button>
+            
             <button
               onClick={handleConfirm}
               disabled={!isSplitPayment ? !hasEnoughCash : false}
               className={`flex-1 py-3 font-semibold transition-colors ${
                 !isSplitPayment && !hasEnoughCash
-                  ? "bg-green-600 hover:bg-green-700 text-white"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700 text-white"
               }`}
             >
               Open Drawer

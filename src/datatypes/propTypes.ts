@@ -8,8 +8,8 @@ export type TotalProps = {
 
 export type OrderProps = {
     cart : Cart[];
-    onUpdateQuantity: (id: number, quantity: number) => void;
-    onRemoveItem: (id: number) => void;
+    onUpdateQuantity: (id: string, quantity: number) => void;
+    onRemoveItem: (id: string) => void;
 }
 
 export type AddCustomerInfoProps = {

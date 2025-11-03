@@ -42,7 +42,7 @@ const Payment = () => {
   const [discountPercentage, setDiscountPercentage] = useState<Discount["value"]>(0);
   const [discountAmount, setDiscountAmount] = useState(0);
 
-  const removeItem = (id: number) => {
+  const removeItem = (id: string) => {
     const updatedCart = finalCart.filter((item) => item.id !== id);
     setFinalCart(updatedCart);
     notificationService.info('Item Removed', 'Item has been removed from the cart');
@@ -270,16 +270,21 @@ const Payment = () => {
           <head>
             <title>Receipt - ${currentTransaction.receiptNumber}</title>
             <style>
-              body { font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.4; margin: 0; padding: 20px; max-width: 300px; }
-              .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
-              .item { display: flex; justify-content: space-between; margin-bottom: 5px; }
-              .total { border-top: 1px solid #000; padding-top: 10px; margin-top: 10px; font-weight: bold; }
-              .footer { text-align: center; margin-top: 20px; font-size: 10px; }
+              @media print {
+                @page { size: 80mm auto; margin: 0; }
+                body { font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.4; margin: 0; padding: 0; }
+                .receipt { width: 80mm; padding: 10px; page-break-inside: avoid; }
+                .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
+                .item { display: flex; justify-content: space-between; margin-bottom: 5px; }
+                .total { border-top: 1px solid #000; padding-top: 10px; margin-top: 10px; font-weight: bold; }
+                .footer { text-align: center; margin-top: 20px; font-size: 10px; }
+              }
             </style>
           </head>
           <body>
-            <div class="header">
-              <h2>AURA POS SYSTEM</h2>
+            <div class="receipt">
+              <div class="header">
+              <h2>SHOE PALACE</h2>
               <p>Receipt: ${currentTransaction.receiptNumber}</p>
               <p>Date: ${currentTransaction.timestamp.toLocaleString()}</p>
             </div>
@@ -327,17 +332,20 @@ const Payment = () => {
             </div>
             <div class="footer">
               <p>Payment Method: ${currentTransaction.method.toUpperCase()}</p>
-              <p>Thank you for your business!</p>
+              <p>Thank you for coming!</p>
               <p>Generated at: ${new Date().toLocaleString()}</p>
+            </div>
             </div>
           </body>
         </html>
       `;
 
       printWindow.document.write(receiptHTML);
+      notificationService.success('Print Initiated', 'Receipt print dialog opened');
       printWindow.document.close();
       printWindow.print();
       printWindow.close();
+      notificationService.success('Print Completed', 'Receipt printed successfully');
     }
   };
 

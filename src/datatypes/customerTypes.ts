@@ -3,7 +3,7 @@ export type Customer = {
   name: string;
   phone: string;
   birthday: string;
-  totalVisit: string;  // Changed to string to match JSON
+  totalVisit: string;  
   lastVisit: string;
   loyaltyPoints: number;
 }

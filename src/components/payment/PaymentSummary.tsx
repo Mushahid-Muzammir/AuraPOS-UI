@@ -4,7 +4,7 @@ import ApplyDiscount from '../checkout/ApplyDiscount';
 
 interface PaymentSummaryProps {
   cart: Array<{
-    id: number;
+    id: string;
     name: string;
     price: number;
     quantity: number;
@@ -18,7 +18,7 @@ interface PaymentSummaryProps {
   serviceCharge: number;
   total: number;
   onSetDiscount: (discount: number) => void;
-  onRemoveItem: (id: number) => void;
+  onRemoveItem: (id: string) => void;
   onCancelSale: () => void;
 }
 

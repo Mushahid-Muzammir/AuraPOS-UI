@@ -7,7 +7,7 @@ export interface TransactionLog {
   amount: number;
   customerId?: string;
   items: Array<{
-    id: number;
+    id: string;
     name: string;
     price: number;
     quantity: number;

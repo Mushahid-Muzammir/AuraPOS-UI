@@ -1,5 +1,5 @@
 export type Product = {
-    id: number,
+    id: string,
     name: string,
     category: string,
     price: number,
@@ -8,8 +8,17 @@ export type Product = {
     description: string,
 }
 
+export type CreateProduct = Omit<Product, 'id'>;
+
+export type ProductListResponse = {
+    products: Product[],
+    total: number,
+    page: number,
+    pageSize: number,
+}
+
 export type Cart = {
-    id: number,
+    id: string,
     name: string,
     category: string,
     price: number,
