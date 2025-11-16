@@ -1,4 +1,4 @@
-import type { OrderProps } from "../../datatypes/propTypes";
+import type { OrderProps } from "../../interfaces/propTypes";
 import cartEmpty from '../../assets/cartEmpty.svg'
 
 const Order = ({ cart, onUpdateQuantity, onRemoveItem } : OrderProps) => {

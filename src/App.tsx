@@ -13,10 +13,12 @@ import EmployeeLogin from "./pages/EmployeeLogin";
 import Categories from "./pages/Categories";
 import ForgotPassword from "./pages/ForgotPassword";
 import Payment from "./pages/Payment";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryConfig } from "./config/queryConfig";
 
 function App() {
   return (
-    <>
+    <QueryClientProvider client={queryConfig}>
       <Toaster richColors position="top-center" />
       <Router>
         <Routes>
@@ -34,7 +36,7 @@ function App() {
           <Route path="payment" element={<Payment />} />
         </Routes>
       </Router>
-    </>
+    </QueryClientProvider>
   );
 }
 

@@ -1,4 +1,4 @@
-import type { Expense } from "../../datatypes/expenseTypes.ts";
+import type { Expense } from "../../interfaces/expenseInterface.ts";
 
 interface Props {
   data: Expense[];

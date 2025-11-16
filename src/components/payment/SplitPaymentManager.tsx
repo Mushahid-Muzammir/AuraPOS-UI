@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { formatCurrency, validateSplitPayment } from '../../utils/validation';
 import { notificationService } from '../../utils/notificationService';
-import type { SplitPayment, PaymentMethods } from '../../datatypes/saleTypes';
+import type { SplitPayment, PaymentMethods } from '../../interfaces/saleInterface';
 
 interface SplitPaymentManagerProps {
   splitPayments: SplitPayment[];

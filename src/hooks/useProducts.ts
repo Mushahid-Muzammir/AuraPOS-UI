@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import type { PaginationParams } from "../datatypes/apiTypes";
+import type { PaginationParams } from "../interfaces/apiRequestInterface";
 import { productService } from "../api/services/productService";
-import type { CreateProduct, Product } from "../datatypes/productType";
+import type { CreateProduct, Product } from "../interfaces/productInterface";
 import { toast } from 'sonner';
 
 export const productKeys = {
@@ -32,26 +32,26 @@ export const useProduct = (id: string) => {
     })
 }
 
-// ✅ Search products
+// Search products
 export const useProductSearch = (query: string) => {
   return useQuery({
     queryKey: productKeys.search(query),
-    queryFn: () => productService.getBySearch(query),
+    queryFn: () => productService.getProductBySearch(query),
     enabled: query.length > 1, // Only search if query is 1+ characters
     staleTime: 30 * 1000, // 30 seconds
   });
 };
 
-// ✅ Get products by category
+// Get products by category
 export const useProductsByCategory = (categoryId: string) => {
   return useQuery({
     queryKey: productKeys.byCategory(categoryId),
-    queryFn: () => productService.getByCategory(categoryId),
+    queryFn: () => productService.getProductsByCategory(categoryId),
     enabled: !!categoryId,
   });
 };
 
-// ✅ Create product mutation
+// Create product mutation
 export const useCreateProduct = () => {
   const queryClient = useQueryClient();
 
@@ -63,7 +63,7 @@ export const useCreateProduct = () => {
       queryClient.invalidateQueries({ queryKey: productKeys.lists() });
       
       // Optimistically update cache
-      queryClient.setQueryData(productKeys.detail(newProduct.id), newProduct);
+      queryClient.setQueryData(productKeys.detail(newProduct.productId), newProduct);
       
       toast.success('Product created successfully!');
     },
@@ -74,7 +74,7 @@ export const useCreateProduct = () => {
   });
 };
 
-// ✅ Update product mutation
+// Update product mutation
 export const useUpdateProduct = () => {
   const queryClient = useQueryClient();
 
@@ -99,7 +99,7 @@ export const useUpdateProduct = () => {
     
     onSuccess: (updatedProduct) => {
       queryClient.invalidateQueries({ queryKey: productKeys.lists() });
-      toast.success(`Product with Product Id ${updatedProduct.id} updated successfully!`);
+      toast.success(`Product with Product Id ${updatedProduct.productId} updated successfully!`);
     },
     
     onError: (error: any, variables, context) => {
@@ -115,7 +115,7 @@ export const useUpdateProduct = () => {
   });
 };
 
-// ✅ Delete product mutation
+// Delete product mutation
 export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
 

@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import type {
   NewCustomer,
   ExistingCustomer,
-} from "../../datatypes/customerTypes";
-import type { AddCustomerInfoProps } from "../../datatypes/propTypes";
+} from "../../interfaces/customerInterface";
+import type { AddCustomerInfoProps } from "../../interfaces/propTypes";
 
 const AddCustomerInfo = ({
   showCustomerForm,

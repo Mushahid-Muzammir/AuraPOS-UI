@@ -18,7 +18,7 @@ import { Line } from "react-chartjs-2";
 import report from "../data/report.json";
 import revenue from "../data/revenue.json";
 import topsellingData from "../data/topselling.json";
-import type { SaleRecord } from "../datatypes/saleTypes.ts";
+import type { SaleRecord } from "../interfaces/saleInterface.ts";
 
 ChartJS.register(
   CategoryScale,

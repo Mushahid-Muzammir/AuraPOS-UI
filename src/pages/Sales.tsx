@@ -5,7 +5,7 @@ import salesData from "../data/sales.json";
 import SalesTable from "../components/sales/SalesTable.tsx";
 import Pagination from "../components/common/Pagination.tsx";
 import SearchAndFilterBar from "../components/common/SearchAndFilterBar.tsx";
-import type { Sale } from "../datatypes/saleTypes.ts";
+import type { Sale } from "../interfaces/saleInterface.ts";
 
 export const Sales = () => {
   const [currentPage, setCurrentPage] = useState(1);

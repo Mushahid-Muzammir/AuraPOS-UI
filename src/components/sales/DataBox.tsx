@@ -1,4 +1,4 @@
-import type { SaleRecord } from "../../datatypes/saleTypes.ts";
+import type { SaleRecord } from "../../interfaces/saleInterface.ts";
 import SaleLogo from "../../assets/sales_logo.svg";
 
 interface DataBoxProps {

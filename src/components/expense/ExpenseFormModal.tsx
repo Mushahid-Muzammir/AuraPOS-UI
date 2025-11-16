@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { Expense } from "../../datatypes/expenseTypes";
+import type { Expense } from "../../interfaces/expenseInterface";
 
 interface Props {
   onClose: () => void;

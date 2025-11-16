@@ -1,5 +1,5 @@
 import React from 'react';
-import type { PaymentMethods } from '../../datatypes/saleTypes';
+import type { PaymentMethods } from '../../interfaces/saleInterface';
 import cash from '../../assets/cash.svg';
 import card from '../../assets/card.svg';
 import koko from '../../assets/koko.svg';

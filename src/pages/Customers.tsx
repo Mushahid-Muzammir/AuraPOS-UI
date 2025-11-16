@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import TopBar from "../components/common/TopBar";
 import SideBar from "../components/common/SideBar";
 import customersData from "../data/customers.json";
-import type { Customer } from "../datatypes/customerTypes.ts";
+import type { Customer } from "../interfaces/customerInterface.ts";
 import CustomersTable from "../components/customer/CustomersTable.tsx";
 import Pagination from "../components/common/Pagination.tsx";
 import SearchAndFilterBar from "../components/common/SearchAndFilterBar.tsx";

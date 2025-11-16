@@ -8,9 +8,9 @@ import AddCustomerInfo from "../components/dashboard/AddCustomerInfo";
 import type {
   NewCustomer,
   ExistingCustomer,
-} from "../datatypes/customerTypes.ts";
-import type { Product, Cart, Category } from "../datatypes/productType.ts";
-import type { PaymentProps } from "../datatypes/propTypes.ts";
+} from "../interfaces/customerInterface.ts";
+import type { Product, Cart, Category } from "../interfaces/productInterface.ts";
+import type { PaymentProps } from "../interfaces/propTypes.ts";
 import { useProducts, useProductSearch } from "../hooks/useProducts.ts";
 
 type PaymentData = PaymentProps;
@@ -39,21 +39,15 @@ const Dashboard = () => {
   );
   const [cart, setCart] = useState([] as Cart[]);
   const navigate = useNavigate();
-
-  if (isLoading) return <div>Loading products...</div>;
-  if (isSearching) return <div>Searching products...</div>;
-  if (isError) return <div>Error: {error.message}</div>;
-
   const products = searchQuery ? searchResults : productsData?.products;
 
   useEffect(() => {
-    if (customer) setShowCustomerForm(false); // auto-close form
+    if (customer) setShowCustomerForm(false); 
   }, [customer]);
 
   const handleProceedToCheckout = () => {
     if (cart.length === 0) return;
 
-    // Prepare payment data
     const paymentData: PaymentData = {
       cart,
       customer,
@@ -61,14 +55,9 @@ const Dashboard = () => {
       timestamp: Date.now(),
     };
 
-    // Option 1: Navigate with state (recommended for small data)
     navigate("/payment", {
       state: paymentData,
     });
-
-    // Option 2: Store in sessionStorage (for larger data or page refresh)
-    // sessionStorage.setItem("pendingPayment", JSON.stringify(paymentData));
-    // navigate("/payment");
 
     // Option 3: Use Context/Redux (for global state management)
     // dispatch(setPaymentData(paymentData));
@@ -96,7 +85,7 @@ const Dashboard = () => {
         return [
           ...prevCart,
           {
-            ...product, // include all required fields from Product
+            ...product,
             quantity: 1,
           },
         ];
@@ -163,7 +152,7 @@ const Dashboard = () => {
                 </button>
               ))}
             </div>
-            <div className="flex items-center">
+            <div className="flex justify-between items-center">
               <div className="flex justify-between items-center ml-4 mt-3 w-[70%]">
                 <input
                   type="text"
@@ -186,7 +175,12 @@ const Dashboard = () => {
                 Refresh Data
               </button>
             </div>
+
             <div className="flex flex-wrap gap-5 ml-4 mt-8">
+              {isLoading && <div>Loading products...</div>}
+              {isSearching && <div>Searching products...</div>}
+              {isError && <div>Error: {error.message}</div>}
+
               {filteredProducts?.map((prod) => (
                 <div
                   key={prod.id}
@@ -279,25 +273,24 @@ const Dashboard = () => {
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Pagination */}
-          <div className="mt-6 flex gap-2 justify-center">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-4 py-2 border rounded"
-            >
-              Previous
-            </button>
-            <span className="px-4 py-2">Page {page}</span>
-            <button
-              onClick={() => setPage((p) => p + 1)}
-              disabled={!productsData?.products.length}
-              className="px-4 py-2 border rounded"
-            >
-              Next
-            </button>
+            {/* Pagination */}
+            <div className="mt-6 flex gap-2 justify-center">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-4 py-2 border rounded"
+              >
+                Previous
+              </button>
+              <span className="px-4 py-2">Page {page}</span>
+              <button
+                onClick={() => setPage((p) => p + 1)}
+                disabled={!productsData?.products.length}
+                className="px-4 py-2 border rounded"
+              >
+                Next
+              </button>
+            </div>
           </div>
 
           <div className="w-[30%] h-[100%] bg-white flex flex-col gap-2 items-center border px-2 py-4 m-4 rounded-lg ">

@@ -31,15 +31,15 @@ api.interceptors.response.use(
         }
 
         // Handle 403 Forbidden
-    if (error.response?.status === 403) {
-      console.error('Access denied');
-    }
+        if (error.response?.status === 403) {
+        console.error('Access denied');
+        }
 
-    // Handle network errors
-    if (!error.response) {
-      console.error('Network error - please check your connection');
-    }
+        // Handle network errors
+        if (!error.response) {
+        console.error('Network error - please check your connection');
+        }
 
-    return Promise.reject(error);
+        return Promise.reject(error);
     }
 )

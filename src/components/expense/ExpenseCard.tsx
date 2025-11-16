@@ -1,4 +1,4 @@
-import type { DataCard } from "../../datatypes/expenseTypes.ts";
+import type { DataCard } from "../../interfaces/expenseInterface.ts";
 
 interface ExpenseCardProps {
   displayData: DataCard;

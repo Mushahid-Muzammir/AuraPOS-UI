@@ -13,8 +13,8 @@ import { usePaymentConfig } from "../hooks/usePaymentConfig";
 import { transactionLogger } from "../utils/transactionLogger";
 import { notificationService } from "../utils/notificationService";
 import { formatCurrency, validateAmount } from "../utils/validation";
-import type { PaymentProps } from "../datatypes/propTypes.ts";
-import type { Discount, PaymentMethods, SplitPayment } from "../datatypes/saleTypes.ts";
+import type { PaymentProps } from "../interfaces/propTypes.ts";
+import type { Discount, PaymentMethods, SplitPayment } from "../interfaces/saleInterface.ts";
 
 const Payment = () => {
   const navigate = useNavigate();

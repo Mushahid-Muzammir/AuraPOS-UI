@@ -1,4 +1,4 @@
-import type { Customer } from "../../datatypes/customerTypes";
+import type { Customer } from "../../interfaces/customerInterface";
 
 interface Props {
   data: Customer[];

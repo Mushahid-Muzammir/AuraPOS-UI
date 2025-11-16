@@ -1,5 +1,5 @@
-import type { ApiResponse, PaginationParams } from '../../datatypes/apiTypes';
-import type { Product, ProductListResponse } from '../../datatypes/productType';
+import type { ApiResponse, PaginationParams } from '../../interfaces/apiRequestInterface';
+import type { CreateProduct, Product, ProductListResponse } from '../../interfaces/productInterface';
 import { api } from '../axios.config';
 import { ApiEndpoints } from '../endpoints';
 
@@ -15,17 +15,17 @@ export const productService = {
         return response.data.data;
     },
 
-    getByCategory: async(categoryId: string): Promise<Product[]> => {
+    getProductsByCategory: async(categoryId: string): Promise<Product[]> => {
         const response = await api.get<ApiResponse<Product[]>>(ApiEndpoints.GET_PRODUCTS_BY_CATEGORY(categoryId));
         return response.data.data;
     },
 
-    getBySearch: async(search : string): Promise <Product[]> => {
-        const response = await api.get<ApiResponse<Product[]>>(ApiEndpoints.GET_PRODUCTS_BY_SEARCH, {params: {q: search}});
+    getProductBySearch: async(searchString : string): Promise <Product[]> => {
+        const response = await api.get<ApiResponse<Product[]>>(ApiEndpoints.GET_PRODUCTS_BY_SEARCH, {params: {q: searchString}});
         return response.data.data;
     },
 
-    createProduct: async(productData : Partial<Product>): Promise<Product> => {
+    createProduct: async(productData : Partial<CreateProduct>): Promise<Product> => {
         const response = await api.post<ApiResponse<Product>>(ApiEndpoints.CREATE_PRODUCT, productData);
         return response.data.data;
     },

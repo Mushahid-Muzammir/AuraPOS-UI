@@ -1,4 +1,4 @@
-import type { Sale } from "../../datatypes/saleTypes";
+import type { Sale } from "../../interfaces/saleInterface";
 
 interface Props {
   data: Sale[];

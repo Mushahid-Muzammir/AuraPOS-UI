@@ -13,11 +13,11 @@ export const ApiEndpoints = {
     GET_SALES_REPORT: '/sales/report',
 
     GET_CUSTOMERS: '/customers',
-    GET_CUSTOMER_BY_ID: (id: number) => `/customers/${id}`,
-    GET_CUSTOMER_BY_PHONE: (phone: string) => `/customers/phone/${phone}`,
+    GET_CUSTOMER_BY_ID: (id: string) => `/customers/${id}`,
+    GET_CUSTOMER_BY_SEARCH : `api/customers/search`,
     CREATE_CUSTOMER: '/customers',
-    UPDATE_CUSTOMER: (id: number) => `/customers/${id}`,
-    DELETE_CUSTOMER: (id: number) => `/customers/${id}`,
+    UPDATE_CUSTOMER: (id: string) => `/customers/${id}`,
+    DELETE_CUSTOMER: (id: string) => `/customers/${id}`,
 
     GET_CHEQUES: '/cheques',
     GET_CHEQUE_BY_ID: (id: number) => `/cheques/${id}`,

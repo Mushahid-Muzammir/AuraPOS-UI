@@ -1,11 +1,11 @@
-export type DataCard = {
+export interface DataCard  {
     title: string,
     img: string,
     amount: number,
     percentage: number
 }
 
-export type Expense = {
+export interface Expense  {
   id: number;
   description: string;
   amount: number;

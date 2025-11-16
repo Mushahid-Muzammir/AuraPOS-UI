@@ -8,7 +8,7 @@ import SearchAndFilterBar from "../components/common/SearchAndFilterBar.tsx";
 import Pagination from "../components/common/Pagination.tsx";
 import expensesData from "../data/expense.json";
 import { toast } from "sonner";
-import type { Expense, DataCard } from "../datatypes/expenseTypes.ts";
+import type { Expense, DataCard } from "../interfaces/expenseInterface.ts";
 
 const Expenses = () => {
   const [expenses, setExpenses] = useState<Expense[]>(

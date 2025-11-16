@@ -1,6 +1,6 @@
 import { useState } from "react"
-import type { Discount } from "../../datatypes/saleTypes.ts"
-import type { ApplyDisCountProps } from "../../datatypes/propTypes.ts";
+import type { Discount } from "../../interfaces/saleInterface.ts"
+import type { ApplyDisCountProps } from "../../interfaces/propTypes.ts";
 
 const ApplyDiscount = ({ onSetDiscount }: ApplyDisCountProps) => {
     const [discountPercentage, setDiscountPercentage] = useState(null as Discount["value"] | null);
