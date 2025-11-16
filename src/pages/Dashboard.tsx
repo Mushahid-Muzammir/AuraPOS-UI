@@ -10,7 +10,7 @@ import type {
   ExistingCustomer,
 } from "../interfaces/customerInterface.ts";
 import type { Product, Cart, Category } from "../interfaces/productInterface.ts";
-import type { PaymentProps } from "../interfaces/propTypes.ts";
+import type { PaymentProps } from "../interfaces/saleInterface.ts";
 import { useProducts, useProductSearch } from "../hooks/useProducts.ts";
 
 type PaymentData = PaymentProps;
@@ -73,22 +73,26 @@ const Dashboard = () => {
 
   const addToCart = (product: Product) => {
     setCart((prevCart: Cart[]) => {
-      const existingItem = prevCart.find((item) => item.id === product.id);
+      const existingItem = prevCart.find((item) => item.id === product.productId);
 
       if (existingItem) {
         return prevCart.map((item) =>
-          item.id === product.id
+          item.id === product.productId
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       } else {
-        return [
-          ...prevCart,
-          {
-            ...product,
-            quantity: 1,
-          },
-        ];
+        const newCartItem: Cart = {
+          id: product.productId,
+          name: product.productName,
+          category: (product.categoryId as unknown) as string,
+          price: product.sellingPrice,
+          stock: product.currentStock,
+          image: product.image,
+          description: product.description,
+          quantity: 1,
+        };
+        return [...prevCart, newCartItem];
       }
     });
   };
@@ -119,15 +123,15 @@ const Dashboard = () => {
   const filteredProducts = products?.filter((product) => {
     const matchesCategory =
       !selectedCategory ||
-      product.category ===
+      product.categoryId ===
         categories.find((c) => c.id === selectedCategory.id)?.name;
-    const matchesSearch = product.name
+    const matchesSearch = product.productName
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
-  const outOfStockCount = products?.filter((p) => p.stock === 0).length ?? 0;
+  const outOfStockCount = products?.filter((p) => p.currentStock === 0).length ?? 0;
 
   return (
     <div className="flex flex-row">
@@ -183,7 +187,7 @@ const Dashboard = () => {
 
               {filteredProducts?.map((prod) => (
                 <div
-                  key={prod.id}
+                  key={prod.productId}
                   className="flex w-[32%] p-1 pl-2  gap-2 border border-gray-300 rounded-xl items-center"
                 >
                   <a
@@ -192,7 +196,7 @@ const Dashboard = () => {
                   >
                     <img
                       src={new URL(prod.image, import.meta.url).href}
-                      alt={prod.name}
+                      alt={prod.productName}
                       className="h-16 w-16 object-cover rounded-lg"
                     />
                   </a>
@@ -202,27 +206,27 @@ const Dashboard = () => {
                     <div className="flex justify-between items-center">
                       <div className="flex flex-col pr-1">
                         <div className="text-md text-fontcolor font-semibold">
-                          {prod.name}
+                          {prod.productName}
                         </div>
                         <div className="text-sm text-fontcolor font-normal">
-                          {prod.category}
+                          {prod.categoryId}
                         </div>
                       </div>
                       <div
                         className={`text-sm pr-1 font-semibold mt-1 flex-shrink-0 
-                        ${prod.stock < 3 ? "text-red-500" : "text-green-500"}`}
+                        ${prod.currentStock < 3 ? "text-red-500" : "text-green-500"}`}
                       >
-                        Stock : {prod.stock}
+                        Stock : {prod.currentStock}
                       </div>
                     </div>
                     <hr className="border-t border-gray-300" />
                     <div className="flex justify-between">
                       <div className="font-bold text-sm text-primary">
-                        Rs {prod.price}.00
+                        Rs {prod.sellingPrice}.00
                       </div>
                       <button
                         onClick={() => addToCart(prod)}
-                        disabled={prod.stock === 0}
+                        disabled={prod.currentStock === 0}
                         className="rounded-xl bg-blue-200 text-primary font-semibold text-xs mt-2  px-3 py-2 hover:bg-blue-300 disabled:bg-gray-300 disabled:cursor-not-allowed"
                       >
                         Add to Cart
@@ -244,26 +248,26 @@ const Dashboard = () => {
                         <img
                           src={selectedProduct.image}
                           className="h-64 w-full object-contain mb-4"
-                          alt={selectedProduct.name}
+                          alt={selectedProduct.productName}
                         />
                         <p className="text-lg font-semibold mb-2">
-                          {selectedProduct.name}
+                          {selectedProduct.productName}
                         </p>
                         <p className="text-sm text-gray-600 mb-2">
                           {selectedProduct.description}
                         </p>
                         <p className="text-xl text-blue-600 font-bold mb-4">
-                          Rs {selectedProduct.price.toFixed(2)}
+                          Rs {selectedProduct.sellingPrice.toFixed(2)}
                         </p>
                         <button
                           onClick={() => {
                             addToCart(selectedProduct);
                             setShowDetailedPopup(false);
                           }}
-                          disabled={selectedProduct.stock === 0}
+                          disabled={selectedProduct.currentStock === 0}
                           className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg font-semibold"
                         >
-                          {selectedProduct.stock === 0
+                          {selectedProduct.currentStock === 0
                             ? "Out of Stock"
                             : "Add to Cart"}
                         </button>

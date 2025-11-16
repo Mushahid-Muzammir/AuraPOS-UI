@@ -9,7 +9,31 @@ import type { Sale } from "../interfaces/saleInterface.ts";
 
 export const Sales = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [sales] = useState<Sale[]>(salesData as Sale[]);
+  const [sales] = useState<Sale[]>(
+  (salesData as any[]).map((item: any): Sale => ({
+    saleId: item.id?.toString() ?? "",
+    customerId: item.contact ?? "",
+    productName: item.product,
+    saleDate: item.date,
+    saleTime: item.time,
+    
+    // REQUIRED FIELDS WITH DEFAULT VALUES
+    subTotal: item.total,
+    discountPercentage: 0,
+    discountAmount: 0,
+    taxAmount: 0,
+    totalAmount: item.total,
+
+    payment_method: item.payment_method,
+    paymentStatus: "Paid",
+
+    paidAmount: item.total,
+    changeGiven: 0,
+    
+    contact: item.contact
+  }))
+);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -17,13 +41,13 @@ export const Sales = () => {
   const filteredSales = useMemo(() => {
     return sales.filter((item) => {
       const matchSearch =
-        item.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.contact.toString().includes(searchTerm);
       const matchStart = startDate
-        ? new Date(item.date) >= new Date(startDate)
+        ? new Date(item.saleDate) >= new Date(startDate)
         : true;
       const matchEnd = endDate
-        ? new Date(item.date) <= new Date(endDate)
+        ? new Date(item.saleDate) <= new Date(endDate)
         : true;
       return matchSearch && matchStart && matchEnd;
     });

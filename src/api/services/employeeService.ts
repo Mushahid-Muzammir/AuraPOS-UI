@@ -1,32 +1,33 @@
 import { api } from "../axios.config";
 import { ApiEndpoints } from "../endpoints";
 import type { ApiResponse, PaginationParams } from "../../interfaces/apiRequestInterface";
+import type { Employee } from "../../interfaces/employeeInterface";
 
 
 
 export const employeeService = {
-    getCustomers: async (params? : PaginationParams): Promise<CustomerListResponse> => {
-            const response = await api.get<ApiResponse<CustomerListResponse>>(ApiEndpoints.GET_CUSTOMERS, {params});
+    getCustomers: async (params? : PaginationParams): Promise<Employee> => {
+            const response = await api.get<ApiResponse<Employee>>(ApiEndpoints.GET_CUSTOMERS, {params});
             return response.data.data;
         },
     
-        getCustomerById: async(customerId : string): Promise<Customer> => {
-            const response = await api.get<ApiResponse<Customer>>(ApiEndpoints.GET_CUSTOMER_BY_ID(customerId));
+        getCustomerById: async(customerId : string): Promise<Employee> => {
+            const response = await api.get<ApiResponse<Employee>>(ApiEndpoints.GET_CUSTOMER_BY_ID(customerId));
             return response.data.data;
         },
     
-        createCustomer: async (customerData : Partial<NewCustomer>) :Promise<Customer> => {
-            const response = await api.post<ApiResponse<Customer>>(ApiEndpoints.CREATE_CUSTOMER, customerData);
+        createCustomer: async (customerData : Partial<Employee>) :Promise<Employee> => {
+            const response = await api.post<ApiResponse<Employee>>(ApiEndpoints.CREATE_CUSTOMER, customerData);
             return response.data.data;
         },
     
-        getCustomerBySearch: async(searchString: string) :Promise<Customer[]> => {
-            const response = await api.get<ApiResponse<Customer[]>>(ApiEndpoints.GET_CUSTOMER_BY_SEARCH, {params: {q: searchString}});
+        getCustomerBySearch: async(searchString: string) :Promise<Employee[]> => {
+            const response = await api.get<ApiResponse<Employee[]>>(ApiEndpoints.GET_CUSTOMER_BY_SEARCH, {params: {q: searchString}});
             return response.data.data;
         },
     
-        updateCustomer: async (id: string, customer: Partial<Customer>): Promise<Customer> => {
-            const response = await api.put<ApiResponse<Customer>>(
+        updateCustomer: async (id: string, customer: Partial<Employee>): Promise<Employee> => {
+            const response = await api.put<ApiResponse<Employee>>(
               ApiEndpoints.UPDATE_CUSTOMER(id),
               customer
             );

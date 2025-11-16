@@ -4,7 +4,6 @@ export interface AddCustomerInfoProps  {
   onSetCustomer: (customer: NewCustomer | ExistingCustomer) => void;
 };
 
-
 export interface Customer {
   id: string;
   name: string;

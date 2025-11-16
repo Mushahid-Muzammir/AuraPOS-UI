@@ -16,6 +16,8 @@ export interface Sale {
   paymentStatus: string;             
   paidAmount: number;
   changeGiven: number;
+  productName: string;
+  contact: string
 }
 
 export interface SaleItem {

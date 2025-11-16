@@ -3,7 +3,7 @@ import type {
   NewCustomer,
   ExistingCustomer,
 } from "../../interfaces/customerInterface";
-import type { AddCustomerInfoProps } from "../../interfaces/propTypes";
+import type { AddCustomerInfoProps } from "../../interfaces/customerInterface";
 
 const AddCustomerInfo = ({
   showCustomerForm,

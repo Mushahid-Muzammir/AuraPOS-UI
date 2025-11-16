@@ -4,6 +4,7 @@ export interface Product  {
     brandId: string,
     categoryId: string,
     subCategoryId: string,
+    hasVariant: boolean,
     costPrice: number ,             
     sellingPrice: number,
     discountPercentage: number,

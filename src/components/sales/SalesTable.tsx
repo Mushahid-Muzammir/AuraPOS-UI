@@ -25,16 +25,15 @@ const SalesTable = ({ data }: Props) => {
           {data.length > 0 ? (
             data.map((sale) => (
               <tr
-                key={sale.id}
+                key={sale.saleId}
                 className="odd:bg-gray-50 hover:bg-blue-50 transition"
               >
-                <td className="px-8 py-5 border-b">{sale.id}</td>
-                <td className="px-8 py-5 border-b">{sale.product}</td>
-                <td className="px-8 py-5 border-b">{sale.contact}</td>
-                <td className="px-8 py-5 border-b">{sale.date}</td>
-                <td className="px-8 py-5 border-b">{sale.time}</td>
-                <td className="px-8 py-5 border-b">{sale.quantity}</td>
-                <td className="px-8 py-5 border-b">{sale.total}</td>
+                <td className="px-8 py-5 border-b">{sale.saleId}</td>
+                <td className="px-8 py-5 border-b">{sale.customerId}</td>
+                <td className="px-8 py-5 border-b">{sale.saleDate}</td>
+                <td className="px-8 py-5 border-b">{sale.saleTime}</td>
+                <td className="px-8 py-5 border-b">{sale.payment_method}</td>
+                <td className="px-8 py-5 border-b">{sale.totalAmount}</td>
                 <td className="px-8 py-5 border-b">{sale.payment_method}</td>
                 <td className="px-8 py-5 border-b text-blue-600 font-semibold">
                   View Bill

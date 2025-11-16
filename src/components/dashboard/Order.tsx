@@ -1,5 +1,6 @@
-import type { OrderProps } from "../../interfaces/propTypes";
+import type { OrderProps } from "../../interfaces/saleInterface";
 import cartEmpty from '../../assets/cartEmpty.svg'
+import type { Cart } from "../../interfaces/productInterface";
 
 const Order = ({ cart, onUpdateQuantity, onRemoveItem } : OrderProps) => {
 
@@ -11,7 +12,7 @@ const Order = ({ cart, onUpdateQuantity, onRemoveItem } : OrderProps) => {
         </p>
       ) : (
       <div className="max-h-72 overflow-y-auto pr-2">
-        {cart.map((item) => (
+        {cart.map((item: Cart) => (
           <div key={item.id} className="flex flex-row gap-2">
             <img
                 src={item.image}

@@ -1,4 +1,4 @@
-import type { TotalProps } from '../../interfaces/propTypes';
+import type { TotalProps } from '../../interfaces/saleInterface';
 
 
 const Total = ({ subtotal  }: TotalProps) => {
