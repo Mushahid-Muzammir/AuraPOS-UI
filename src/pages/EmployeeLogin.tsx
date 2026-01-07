@@ -1,40 +1,30 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import logo from "../assets/logo.png";
 import OtpInput from "react-otp-input";
 import propic from "../assets/propic.jpeg";
-
-const employeesList = [
-  { id: 1, name: "Alice Johnson", role: "Front Desk Officer", pin: "123456" },
-  { id: 2, name: "Bob Williams", role: "Administrator", pin: "654321" },
-  { id: 3, name: "Charlie Brown", role: "Technician", pin: "112233" },
-];
-
-interface Employee {
-  id: string | number;
-  name: string;
-  role?: string;
-  pin?: string;
-}
+import {  useEmployeeLogin, useEmployeesForLogin } from "../hooks/useEmployees";
+import type { EmployeeLoginList } from "../interfaces/employeeInterface";
 
 const EmployeeLogin = () => {
   const [pin, setPin] = useState("");
-  const [employees] = useState<Employee[]>(employeesList);
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee>(
-    employees[0]
-  );
+  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeLoginList | null>(null);
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  
+  const { data: employeesData, isLoading: isLoadingEmployees } = useEmployeesForLogin();
+  const employees = employeesData?.data || [];
+  const employeeLogin = useEmployeeLogin();
 
   const handleLogin = () => {
-    if (pin.length < 6) {
-      toast.error("Please enter a valid 6-digit PIN");
-      return;
-    }
-    toast.success("Login successful! 🎉");
-    navigate("/home");
-  };
+  if (pin.length < 8 || !selectedEmployee) return;
+
+  employeeLogin.mutate({
+    username: selectedEmployee.email,
+    password: pin,
+  });
+};
+
 
   const handleForgotPin = () => {
     navigate("/forgetPIN");
@@ -59,43 +49,52 @@ const EmployeeLogin = () => {
 
       <div className="flex items-center bg-white mb-12">
         <div className="relative w-80">
-          <div
-            onClick={() => setOpen(!open)}
-            className="flex items-center w-full p-3 border rounded-lg shadow-sm bg-white cursor-pointer"
-          >
-            <img
-              src={propic}
-              alt={selectedEmployee.name}
-              className="w-10 h-10 rounded-full mr-3 object-cover"
-            />
-            <div className="flex-1">
-              <p className="font-medium">{selectedEmployee.name}</p>
-            </div>
-            <span className="text-gray-400">&#9662;</span>
-          </div>
-
-          {open && (
-            <div className="absolute mt-1 w-full bg-white border rounded-lg shadow-lg z-10">
-              {employees.map((emp) => (
-                <div
-                  key={emp.id}
-                  onClick={() => {
-                    setSelectedEmployee(emp);
-                    setOpen(false);
-                  }}
-                  className="flex items-center p-3 hover:bg-gray-100 cursor-pointer"
-                >
-                  <img
-                    src={propic}
-                    alt={emp.name}
-                    className="w-10 h-10 rounded-full mr-3 object-cover"
-                  />
-                  <div>
-                    <p className="font-medium">{emp.name}</p>
-                  </div>
+          {isLoadingEmployees ? (
+            <div className="p-3 text-center">Loading employees...</div>
+          ) : (
+            <>
+              <div
+                onClick={() => setOpen(!open)}
+                className="flex items-center w-full p-3 border rounded-lg shadow-sm bg-white cursor-pointer"
+              >
+                <img
+                  src={propic}
+                  alt={selectedEmployee ? `${selectedEmployee.firstName} ${selectedEmployee.lastName}` : "Select Employee"}
+                  className="w-10 h-10 rounded-full mr-3 object-cover"
+                />
+                <div className="flex-1">
+                  <p className="font-medium">
+                    {selectedEmployee ? `${selectedEmployee.firstName} ${selectedEmployee.lastName}` : "Select Employee"}
+                  </p>
                 </div>
-              ))}
-            </div>
+                <span className="text-gray-400">&#9662;</span>
+              </div>
+
+              {open && (
+                <div className="absolute mt-1 w-full bg-white border rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                  {employees.map((emp ) => (
+                    <div
+                      key={emp.employeeId}
+                      onClick={() => {
+                        setSelectedEmployee(emp);
+                        setOpen(false);
+                      }}
+                      className="flex items-center p-3 hover:bg-gray-100 cursor-pointer"
+                    >
+                      <img
+                        src={propic}
+                        alt={emp.firstName + " " + emp.lastName}
+                        className="w-10 h-10 rounded-full mr-3 object-cover"
+                      />
+                      <div>
+                        <p className="font-medium">{emp.firstName} {emp.lastName}</p>
+                        {emp.email && <p className="text-sm text-gray-500">{emp.email}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -131,9 +130,10 @@ const EmployeeLogin = () => {
       <button
         type="submit"
         onClick={handleLogin}
-        className="bg-blue-500 hover:bg-blue-600 text-white w-72 py-3 rounded-lg font-medium"
+        disabled={!selectedEmployee || pin.length < 8 || employeeLogin.isPending}
+        className="bg-blue-500 hover:bg-blue-600 text-white w-72 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Login
+        {employeeLogin.isPending ? "Please wait..." : "Login"}
       </button>
     </div>
   );

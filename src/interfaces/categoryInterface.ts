@@ -1,11 +1,9 @@
 export  interface Category {
-  id: number
-  name: string // "Men's Footwear"
-  description: string
-  parentCategoryId: number// For hierarchical categories
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
+  categoryId: string
+  categoryName: string // "Men's Footwear"
+  description: string,
+  productCount: number
+  
 }
 
 export interface SubCategory {

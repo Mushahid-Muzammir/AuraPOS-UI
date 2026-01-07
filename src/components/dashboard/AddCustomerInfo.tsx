@@ -4,6 +4,8 @@ import type {
   ExistingCustomer,
 } from "../../interfaces/customerInterface";
 import type { AddCustomerInfoProps } from "../../interfaces/customerInterface";
+import { useCustomerSearch, useCreateCustomer } from "../../hooks/useCustomers";
+import { toast } from "sonner";
 
 const AddCustomerInfo = ({
   showCustomerForm,
@@ -19,38 +21,56 @@ const AddCustomerInfo = ({
     birthday: "",
   });
 
+  const { data: searchResults, isLoading: isSearching } = useCustomerSearch(phone);
+  const createCustomerMutation = useCreateCustomer();
+
   if (!showCustomerForm) return null;
 
-  // Simulate fetching existing customer by phone number
-  const handleSearchCustomer = (e: React.FormEvent) => {
+  const handleSearchCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!phone || phone.length < 1) {
+      toast.error("Please enter a phone number");
+      return;
+    }
 
-    // Mock example: imagine calling an API here
-    const foundCustomer: ExistingCustomer = {
-      name: "John Doe",
-      phone,
-      loyaltyPoints: 120,
-    };
-
-    // Set customer to parent state and close form
-    onSetCustomer(foundCustomer);
-    onChangeDisplayForm(false);
-    setPhone("");
+    if (searchResults && searchResults.length > 0) {
+      const foundCustomer = searchResults[0];
+      const existingCustomer: ExistingCustomer = {
+        name: foundCustomer.customerName,
+        phone: foundCustomer.customerPhone,
+        loyaltyPoints: foundCustomer.loyaltyPoints || 0,
+      };
+      onSetCustomer(existingCustomer);
+      onChangeDisplayForm(false);
+      setPhone("");
+    } else {
+      toast.info("Customer not found. You can add them as a new customer.");
+    }
   };
 
-  const handleAddNewCustomer = (e: React.FormEvent) => {
+  const handleAddNewCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!newCustomer.name || !newCustomer.phone) return;
+    if (!newCustomer.name || !newCustomer.phone) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
 
-    const newCust: NewCustomer = {
-      ...newCustomer,
-      loyaltyPoints: 0,
-    };
-
-    onSetCustomer(newCust);
-    onChangeDisplayForm(false);
-    setNewCustomer({ name: "", phone: "", birthday: "" });
+    try {
+      const createdCustomer = await createCustomerMutation.mutateAsync(newCustomer);
+      const newCust: NewCustomer = {
+        name: createdCustomer.customerName,
+        phone: createdCustomer.customerPhone,
+        birthday: createdCustomer.birthDate || "",
+        loyaltyPoints: createdCustomer.loyaltyPoints || 0,
+      };
+      onSetCustomer(newCust);
+      onChangeDisplayForm(false);
+      setNewCustomer({ name: "", phone: "", birthday: "" });
+    } catch (error) {
+      // Error handling is done in the mutation
+    }
   };
 
   return (

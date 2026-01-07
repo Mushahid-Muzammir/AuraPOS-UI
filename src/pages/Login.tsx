@@ -1,25 +1,24 @@
 import React, { useState } from "react";
-import { toast } from "sonner";
 import { useNavigate, Link } from "react-router-dom";
 import phone2 from "../assets/phone2.jpg";
 import logo from "../assets/logo.png";
+import { useLogin } from "../hooks/useAuth";
 
 const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ username: "", password: "" });
+  const loginMutation = useLogin();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!formData.username || !formData.password) {
-      toast.error("Please fill in both fields");
       return;
     }
-    toast.success("Login successful! 🎉", { duration: 1000 });
-    navigate("/home");
+    await loginMutation.mutateAsync(formData);
   };
 
   return (
@@ -81,9 +80,10 @@ const Login = () => {
 
             <button
               type="submit"
-              className="w-[50%] rounded-full py-3 bg-primary hover:bg-blue-700 text-white font-semibold transition duration-200"
+              disabled={loginMutation.isPending}
+              className="w-[50%] rounded-full py-3 bg-primary hover:bg-blue-700 text-white font-semibold transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Login
+              {loginMutation.isPending ? "Logging in..." : "Login"}
             </button>
           </form>
         </div>

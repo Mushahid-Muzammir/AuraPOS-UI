@@ -13,8 +13,7 @@ const CustomersTable = ({ data }: Props) => {
             <th className="py-3 border-b">ID</th>
             <th className="py-3 border-b">Name</th>
             <th className="py-3 border-b">Phone</th>
-            <th className="py-3 border-b">Total Visits</th>
-            <th className="py-3 border-b">Last Visit</th>
+            <th className="py-3 border-b">Email</th>
             <th className="py-3 border-b">Loyalty Points</th>
             <th className="py-3 border-b">Action</th>
           </tr>
@@ -23,14 +22,13 @@ const CustomersTable = ({ data }: Props) => {
           {data.length > 0 ? (
             data.map((customer) => (
               <tr
-                key={customer.id}
+                key={customer.customerId}
                 className="odd:bg-gray-50 hover:bg-blue-50 transition"
               >
-                <td className="px-14 py-5 border-b">{customer.id}</td>
-                <td className="px-14 py-5 border-b">{customer.name}</td>
-                <td className="px-14 py-5 border-b">{customer.phone}</td>
-                <td className="px-14 py-5 border-b">{customer.totalVisit}</td>
-                <td className="px-14 py-5 border-b">{customer.lastVisit}</td>
+                <td className="px-14 py-5 border-b">{customer.customerId}</td>
+                <td className="px-14 py-5 border-b">{customer.customerName}</td>
+                <td className="px-14 py-5 border-b">{customer.customerPhone}</td>
+                <td className="px-14 py-5 border-b">{customer.customerEmail}</td>
                 <td className="px-14 py-5 border-b">
                   {customer.loyaltyPoints}
                 </td>

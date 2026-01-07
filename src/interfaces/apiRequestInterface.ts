@@ -4,15 +4,14 @@ export interface ApiResponse<T>  {
     message?: string;
 }
 
-export interface ApiError  {
-    message: string;
-    code?: string;
-    details?: any;
+export interface ApiErrorResponse{
+    message: string;    
+    statusCode: number;
+    errors?: Record<string, string[]>;
 }
 
 export interface PaginationParams {
     page?: number;
     pageSize?: number;
-    sortOrder?: 'asc' | 'desc';
-    search?: string;
+    cursor?: string;    
 }

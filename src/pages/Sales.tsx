@@ -1,48 +1,38 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import TopBar from "../components/common/TopBar";
 import SideBar from "../components/common/SideBar";
-import salesData from "../data/sales.json";
 import SalesTable from "../components/sales/SalesTable.tsx";
 import Pagination from "../components/common/Pagination.tsx";
 import SearchAndFilterBar from "../components/common/SearchAndFilterBar.tsx";
 import type { Sale } from "../interfaces/saleInterface.ts";
+import { useSales, useSalesByDate } from "../hooks/useSales";
 
 export const Sales = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [sales] = useState<Sale[]>(
-  (salesData as any[]).map((item: any): Sale => ({
-    saleId: item.id?.toString() ?? "",
-    customerId: item.contact ?? "",
-    productName: item.product,
-    saleDate: item.date,
-    saleTime: item.time,
-    
-    // REQUIRED FIELDS WITH DEFAULT VALUES
-    subTotal: item.total,
-    discountPercentage: 0,
-    discountAmount: 0,
-    taxAmount: 0,
-    totalAmount: item.total,
-
-    payment_method: item.payment_method,
-    paymentStatus: "Paid",
-
-    paidAmount: item.total,
-    changeGiven: 0,
-    
-    contact: item.contact
-  }))
-);
-
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
+  const { data: salesData, isLoading, isError, error } = useSales({ 
+    page: currentPage, 
+    pageSize: 5,
+    search: searchTerm 
+  });
+
+  const { data: dateFilteredSales, isLoading: isLoadingByDate } = useSalesByDate(
+    startDate || new Date().toISOString().split('T')[0],
+    endDate || new Date().toISOString().split('T')[0]
+  );
+
+  const sales = (startDate && endDate && dateFilteredSales) ? dateFilteredSales : (salesData?.sales || salesData?.products || []);
+
   const filteredSales = useMemo(() => {
+    if (!sales) return [];
     return sales.filter((item) => {
       const matchSearch =
-        item.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.contact.toString().includes(searchTerm);
+        item.productName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.contact?.toString().includes(searchTerm) ||
+        item.customerId?.toString().includes(searchTerm);
       const matchStart = startDate
         ? new Date(item.saleDate) >= new Date(startDate)
         : true;
@@ -54,8 +44,7 @@ export const Sales = () => {
   }, [sales, searchTerm, startDate, endDate]);
 
   const rowsPerPage = 5;
-
-  const totalPages = Math.ceil(sales.length / rowsPerPage);
+  const totalPages = salesData?.totalPages || Math.ceil(filteredSales.length / rowsPerPage);
   const currentData = filteredSales.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
@@ -79,19 +68,29 @@ export const Sales = () => {
                   setEndDate={setEndDate}
                 />
               </div>
-              <section className="mt-6 bg-white rounded-xl shadow-lg">
-                <SalesTable data={currentData} />
-              </section>
+              {isLoading || isLoadingByDate ? (
+                <div className="p-4 text-center">Loading sales...</div>
+              ) : isError ? (
+                <div className="p-4 text-center text-red-500">
+                  Error: {error instanceof Error ? error.message : 'Failed to load sales'}
+                </div>
+              ) : (
+                <>
+                  <section className="mt-6 bg-white rounded-xl shadow-lg">
+                    <SalesTable data={currentData} />
+                  </section>
 
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPrev={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                onNext={() =>
-                  setCurrentPage((p) => Math.min(p + 1, totalPages))
-                }
-                onPageSelect={setCurrentPage}
-              />
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPrev={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                    onNext={() =>
+                      setCurrentPage((p) => Math.min(p + 1, totalPages))
+                    }
+                    onPageSelect={setCurrentPage}
+                  />
+                </>
+              )}
             </div>
           </div>
         </div>

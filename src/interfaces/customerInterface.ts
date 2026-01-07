@@ -5,13 +5,13 @@ export interface AddCustomerInfoProps  {
 };
 
 export interface Customer {
-  id: string;
-  name: string;
-  phone: string;
-  birthday: string;
-  totalVisit: string;  
-  lastVisit: string;
+  customerId: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string;
+  birthDate: string;
   loyaltyPoints: number;
+  totalPurchases : number;
 }
 
 export interface NewCustomer  {

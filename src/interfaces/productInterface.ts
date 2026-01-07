@@ -8,10 +8,10 @@ export interface Product  {
     costPrice: number ,             
     sellingPrice: number,
     discountPercentage: number,
-    currentStock: number,
+    stockLevel: number,
     reorderLevel: number,
     image: string,
-    description: string,
+    productDescription: string,
     barcode: string,
     isActive: boolean,
     isFeatured: boolean,
@@ -22,17 +22,13 @@ export interface Product  {
 export interface ProductVariant {
     productVariantId: string;
     productId: number;  
+    variantName: string; 
     size: string;
     color: string;                   
-    currentStock: number; // Stock for this size/color
-    length: number; // Shoe length in cm
-    width: string; // Narrow, Regular, Wide
+    stockLevel: number; 
     costPrice: number;
     sellingPrice: number;
-    isAvailable: boolean;
-    createdAt: string;
-    updatedAt: string;
-    imageUrl: string;
+    reorderLevel: number;
 } 
 
 export interface CreateProduct{
@@ -58,18 +54,29 @@ export interface ProductListResponse  {
     pageSize: number,
 }
 
-export interface Cart  {
-    id: string,
-    name: string,
-    category: string,
-    price: number,
-    stock: number,
-    image: string,
-    description: string,
-    quantity: number,
+export interface ProductDashboardListResponse  {
+    data: ProductDashboardResult[],
+    nextCursor: string | null,
 }
 
-export interface Category  {
-    id: number,
-    name: string,
+export interface ProductDashboardResult{
+    productId: string,
+    productName: string,
+    brandId: string,
+    categoryId: string,
+    productDescription: string,
+    isActive: boolean,
+    sellingPrice: number,
+    image: string,
+    stockLevel: number,
+    hasVariant: boolean,
+
+}
+
+export interface Cart  {
+    productId: string,
+    productName: string,
+    sellingPrice: number,
+    image: string,
+    quantity: number,
 }

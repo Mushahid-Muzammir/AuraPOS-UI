@@ -1,7 +1,7 @@
 import { useState } from "react";
 import logo from "../../assets/logo.png";
 import profilePic from "../../assets/propic.jpeg";
-import back from "../../assets/back.svg";
+// import back from "../../assets/back.svg";
 import notificationLogo from "../../assets/notification.svg";
 import alertIcon from "../../assets/alert.svg";
 import reminderLogo from "../../assets/reminder.svg";
@@ -55,9 +55,9 @@ const TopBar = () => {
     <div className="bg-white border-b-3 border-gray-300 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1)]">
       <div className="flex flex-row justify-between">
         <div className="flex flex-row gap-3 justify-start p-1">
-          <button className="rounded-full border border-grey m-3 mx-5 p-1">
+          {/* <button className="rounded-full border border-grey m-3 mx-5 p-1">
             <img src={back} alt="" className="h-6 w-8 text-fontcolor" />
-          </button>
+          </button> */}
           <div className="h-11 w-2 mt-2 border-l-2 border-gray-200 mx-auto"></div>
           <div className="">
             <img src={logo} alt="logo" className="h-16 w-16 mt-2 mx-4 " />

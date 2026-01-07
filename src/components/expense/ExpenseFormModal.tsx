@@ -1,9 +1,8 @@
 import { useState } from "react";
-import type { Expense } from "../../interfaces/expenseInterface";
 
 interface Props {
   onClose: () => void;
-  onAdd: (expense: Expense) => void;
+  onAdd: (expense: { description: string; amount: number; date: string }) => void;
 }
 
 const ExpenseFormModal = ({ onClose, onAdd }: Props) => {
@@ -11,8 +10,7 @@ const ExpenseFormModal = ({ onClose, onAdd }: Props) => {
 
   const handleSubmit = () => {
     if (!form.description || !form.amount || !form.date) return;
-    const newExpense: Expense = {
-      id: Date.now(),
+    const newExpense = {
       description: form.description,
       amount: parseFloat(form.amount),
       date: form.date,

@@ -1,14 +1,15 @@
 import type { ApiResponse, PaginationParams } from "../../interfaces/apiRequestInterface";
-import type {  Customer, CustomerListResponse, NewCustomer } from "../../interfaces/customerInterface";
+import type {  Customer, NewCustomer } from "../../interfaces/customerInterface";
 import { api } from "../axios.config";
 import { ApiEndpoints } from "../endpoints";
 
 export const customerService = {
     //Partial Makes all properties in <T> optional
 
-    getCustomers: async (params? : PaginationParams): Promise<CustomerListResponse> => {
-        const response = await api.get<ApiResponse<CustomerListResponse>>(ApiEndpoints.GET_CUSTOMERS, {params});
-        return response.data.data;
+    getCustomers: async (params? : PaginationParams): Promise<Customer[]> => {
+        const response = await api.get<Customer[]>(ApiEndpoints.GET_CUSTOMERS, {params});
+        console.log("Customer Response", response);
+        return response.data;
     },
 
     getCustomerById: async(customerId : string): Promise<Customer> => {
@@ -34,7 +35,7 @@ export const customerService = {
         return response.data.data;
       },
     
-        deleteProduct: async (id: string): Promise<void> => {
+        deleteCustomer: async (id: string): Promise<void> => {
         await api.delete(ApiEndpoints.DELETE_CUSTOMER(id));
       },
 }

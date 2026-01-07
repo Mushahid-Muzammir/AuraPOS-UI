@@ -1,35 +1,36 @@
 import { useState, useMemo } from "react";
 import TopBar from "../components/common/TopBar";
 import SideBar from "../components/common/SideBar";
-import customersData from "../data/customers.json";
-import type { Customer } from "../interfaces/customerInterface.ts";
 import CustomersTable from "../components/customer/CustomersTable.tsx";
 import Pagination from "../components/common/Pagination.tsx";
 import SearchAndFilterBar from "../components/common/SearchAndFilterBar.tsx";
+import { useCustomers } from "../hooks/useCustomers";
 
 const Customers = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [customers] = useState<Customer[]>(customersData as Customer[]);
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
+  const { data: customersData, isLoading, isError, error } = useCustomers({ 
+    page: currentPage, 
+    pageSize: 4,
+  });
+
+  const customers = customersData || [];
+
   const filteredCustomers = useMemo(() => {
+    if (!customers) return [];
     return customers.filter((item) => {
       const matchSearch =
-        item.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchStart = startDate
-        ? new Date(item.lastVisit) >= new Date(startDate)
-        : true;
-      const matchEnd = endDate
-        ? new Date(item.lastVisit) <= new Date(endDate)
-        : true;
-      return matchSearch && matchStart && matchEnd;
+        item.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.customerPhone.includes(searchTerm);   
+      return matchSearch ;
     });
   }, [customers, searchTerm, startDate, endDate]);
 
   const rowsPerPage = 4;
-  const totalPages = Math.ceil(filteredCustomers.length / rowsPerPage);
+  const totalPages =  Math.ceil(filteredCustomers.length / rowsPerPage);
   const currentData = filteredCustomers.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
@@ -53,18 +54,28 @@ const Customers = () => {
                   setEndDate={setEndDate}
                 />
               </div>
-              <section className="mt-6 bg-white rounded-xl shadow-lg">
-                <CustomersTable data={currentData} />
-              </section>
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPrev={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                onNext={() =>
-                  setCurrentPage((p) => Math.min(p + 1, totalPages))
-                }
-                onPageSelect={setCurrentPage}
-              />
+              {isLoading ? (
+                <div className="p-4 text-center">Loading customers...</div>
+              ) : isError ? (
+                <div className="p-4 text-center text-red-500">
+                  Error: {error instanceof Error ? error.message : 'Failed to load customers'}
+                </div>
+              ) : (
+                <>
+                  <section className="mt-6 bg-white rounded-xl shadow-lg">
+                    <CustomersTable data={currentData} />
+                  </section>
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPrev={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                    onNext={() =>
+                      setCurrentPage((p) => Math.min(p + 1, totalPages))
+                    }
+                    onPageSelect={setCurrentPage}
+                  />
+                </>
+              )}
             </div>
           </div>
         </div>

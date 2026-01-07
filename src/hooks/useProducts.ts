@@ -18,9 +18,12 @@ export const productKeys = {
 
 export const useProducts = (params?: PaginationParams) => {
   return useQuery({
-    queryKey: productKeys.list(params),
-    queryFn: () => productService.getProducts(params),
-    staleTime: 5 * 60 * 1000,
+    queryKey: productKeys.list(params), //Looks for matching query key in cache. If not found, runs queryFn
+    queryFn: async () => {
+      const result = await productService.getProducts(params);
+      return result.data; // 🔥 return ONLY Product[]
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 
@@ -137,3 +140,5 @@ export const useDeleteProduct = () => {
     },
   });
 };
+
+

@@ -13,6 +13,7 @@ import { usePaymentConfig } from "../hooks/usePaymentConfig";
 import { transactionLogger } from "../utils/transactionLogger";
 import { notificationService } from "../utils/notificationService";
 import { formatCurrency, validateAmount } from "../utils/validation";
+import { useCreateSale } from "../hooks/useSales";
 import type { PaymentProps } from "../interfaces/saleInterface.ts";
 import type { Discount, PaymentMethods, SplitPayment } from "../interfaces/saleInterface.ts";
 
@@ -22,6 +23,7 @@ const Payment = () => {
   const paymentData = location.state as PaymentProps;
   const { cart, customer, calculations } = paymentData;
   const { config } = usePaymentConfig();
+  const createSaleMutation = useCreateSale();
   
   // Payment state
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethods>('cash');
@@ -111,7 +113,7 @@ const Payment = () => {
     }
   };
 
-  const handleCashPayment = (amount: number) => {
+  const handleCashPayment = async (amount: number) => {
     const change = amount - (splitPaymentEnabled ? parseFloat(currentSplitAmount) : total);
     
     if (splitPaymentEnabled) {
@@ -125,7 +127,7 @@ const Payment = () => {
       setSplitPayments(prev => [...prev, newPayment]);
       
       // Log transaction and show receipt
-      const transaction = logTransaction('cash', parseFloat(currentSplitAmount), change);
+      const transaction = await logTransaction('cash', parseFloat(currentSplitAmount), change);
       setCurrentTransaction(transaction);
       setShowReceiptModal(true);
       setShowCashModal(false);
@@ -133,7 +135,7 @@ const Payment = () => {
       notificationService.success('Payment Added', 'Cash payment added to split payment');
     } else {
       // For single payments, complete the sale
-      const transaction = logTransaction('cash', amount, change);
+      const transaction = await logTransaction('cash', amount, change);
       setCurrentTransaction(transaction);
       setShowReceiptModal(true);
       setShowCashModal(false);
@@ -142,7 +144,7 @@ const Payment = () => {
     }
   };
 
-  const handleCardPayment = (amount : number) => {
+  const handleCardPayment = async (amount : number) => {
     if (splitPaymentEnabled) {
       // For split payments, add to the list and show receipt
       const newPayment: SplitPayment = {
@@ -154,7 +156,7 @@ const Payment = () => {
       setSplitPayments(prev => [...prev, newPayment]);
       
       // Log transaction and show receipt
-      const transaction = logTransaction('card', amount);
+      const transaction = await logTransaction('card', amount);
       setCurrentTransaction(transaction);
       setShowReceiptModal(true);
       setShowCardModal(false);
@@ -162,7 +164,7 @@ const Payment = () => {
       notificationService.success('Payment Added', 'Card payment added to split payment');
     } else {
       // For single payments, complete the sale
-      const transaction = logTransaction('card', total);
+      const transaction = await logTransaction('card', total);
       setCurrentTransaction(transaction);
       setShowReceiptModal(true);
       setShowCardModal(false);
@@ -171,7 +173,7 @@ const Payment = () => {
     }
   };
 
-  const handleKokoPayment = (phone: string) => {
+  const handleKokoPayment = async (phone: string) => {
     if (splitPaymentEnabled) {
       // For split payments, add to the list and show receipt
       const newPayment: SplitPayment = {
@@ -183,7 +185,7 @@ const Payment = () => {
       setSplitPayments(prev => [...prev, newPayment]);
       
       // Log transaction and show receipt
-      const transaction = logTransaction('koko', parseFloat(currentSplitAmount));
+      const transaction = await logTransaction('koko', parseFloat(currentSplitAmount));
       setCurrentTransaction(transaction);
       setShowReceiptModal(true);
       setShowKokoModal(false);
@@ -191,7 +193,7 @@ const Payment = () => {
       notificationService.success('Payment Added', 'Koko payment added to split payment');
     } else {
       // For single payments, complete the sale
-      const transaction = logTransaction('koko', total);
+      const transaction = await logTransaction('koko', total);
       setCurrentTransaction(transaction);
       setShowReceiptModal(true);
       setShowKokoModal(false);
@@ -200,7 +202,7 @@ const Payment = () => {
     }
   };
 
-  const logTransaction = (method: PaymentMethods, amount: number, change?: number) => {
+  const logTransaction = async (method: PaymentMethods, amount: number, change?: number) => {
     const transaction = transactionLogger.logTransaction({
       type: 'payment',
       method,
@@ -214,6 +216,29 @@ const Payment = () => {
       change,
       status: 'completed'
     });
+
+    // Create sale via API
+    try {
+      await createSaleMutation.mutateAsync({
+        customerId: customer?.phone,
+        items: finalCart.map(item => ({
+          productId: item.id,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        subTotal: subtotal,
+        discountPercentage: discountPercentage > 0 ? discountPercentage : undefined,
+        discountAmount: discountAmount > 0 ? discountAmount : undefined,
+        taxAmount: tax,
+        totalAmount: total,
+        paymentMethod: method,
+        paidAmount: amount,
+        changeGiven: change || 0,
+      });
+    } catch (error) {
+      // Error is handled by the mutation, but we still log the transaction locally
+      console.error('Failed to create sale via API:', error);
+    }
 
     notificationService.info('Transaction Logged', `Receipt: ${transaction.receiptNumber}`);
     return transaction;
@@ -373,22 +398,46 @@ const Payment = () => {
     notificationService.info('Payment Removed', 'Split payment removed from list');
   };
 
-  const handleFinalCompletion = () => {
-    // Log the complete transaction
-    transactionLogger.logTransaction({
-      type: 'payment',
-      method: 'cash', // Use cash as the primary method for split payments
-      amount: total,
-      customerId: customer?.phone,
-      items: finalCart,
-      discount: discountPercentage > 0 ? { percentage: discountPercentage, amount: discountAmount } : undefined,
-      serviceCharge,
-      tax,
-      total,
-      status: 'completed'
-    });
+  const handleFinalCompletion = async () => {
+    // Create sale via API for split payments
+    try {
+      const primaryMethod = splitPayments[0]?.method || 'cash';
+      await createSaleMutation.mutateAsync({
+        customerId: customer?.phone,
+        items: finalCart.map(item => ({
+          productId: item.id,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        subTotal: subtotal,
+        discountPercentage: discountPercentage > 0 ? discountPercentage : undefined,
+        discountAmount: discountAmount > 0 ? discountAmount : undefined,
+        taxAmount: tax,
+        totalAmount: total,
+        paymentMethod: primaryMethod,
+        paidAmount: total,
+        changeGiven: 0,
+      });
+      
+      // Log the complete transaction
+      transactionLogger.logTransaction({
+        type: 'payment',
+        method: primaryMethod,
+        amount: total,
+        customerId: customer?.phone,
+        items: finalCart,
+        discount: discountPercentage > 0 ? { percentage: discountPercentage, amount: discountAmount } : undefined,
+        serviceCharge,
+        tax,
+        total,
+        status: 'completed'
+      });
 
-    notificationService.success('Sale Complete', 'All split payments completed successfully!');
+      notificationService.success('Sale Complete', 'All split payments completed successfully!');
+    } catch (error) {
+      notificationService.error('Sale Creation Failed', 'Sale was logged locally but failed to sync with server');
+    }
+    
     setShowFinalSummary(false);
     resetPayment();
   };

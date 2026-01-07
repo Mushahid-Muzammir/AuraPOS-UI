@@ -9,22 +9,75 @@ import type {
   NewCustomer,
   ExistingCustomer,
 } from "../interfaces/customerInterface.ts";
-import type { Product, Cart, Category } from "../interfaces/productInterface.ts";
+import type {
+  Product,
+  Cart,
+  ProductDashboardResult,
+  ProductVariant,
+} from "../interfaces/productInterface.ts";
+import type { Category } from "../interfaces/categoryInterface.ts";
 import type { PaymentProps } from "../interfaces/saleInterface.ts";
 import { useProducts, useProductSearch } from "../hooks/useProducts.ts";
+import { useCategories } from "../hooks/useCategory.ts";
+import { useProductVariantsbyProductId } from "../hooks/useProductVariant.ts";
+import ProductVariantCard from "../components/product/ProductVariantCard.tsx";
 
 type PaymentData = PaymentProps;
 
 const Dashboard = () => {
+
+  const mapProductToCart = (
+  product: ProductDashboardResult,
+  quantity: number = 1
+): Cart => {
+  return {
+    productId: product.productId,
+    productName: product.productName,
+    sellingPrice: product.sellingPrice,
+    image: product.image,
+    quantity,
+  };
+};
+
+const mapVariantToCart = (
+  variant: ProductVariant,
+  productName: string,
+  image: string
+): Cart => {
+  return {
+    productId: variant.productId.toString(),
+    productName: `${productName} (${variant.color} / ${variant.size})`,
+    sellingPrice: variant.sellingPrice,
+    image,
+    quantity: 1,
+  };
+};
+
+
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
+
+const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+const [showVariantPopup, setShowVariantPopup] = useState(false);
+  const {
+    data: categoryData,
+    isLoading: categoryLoading,
+    isError: categoryLoadError,
+    error: err,
+  } = useCategories();
   const {
     data: productsData,
     isLoading,
     isError,
     error,
     refetch,
-  } = useProducts({ page, pageSize: 10 });
+  } = useProducts({ pageSize: 5 });
+  const {
+    data: productVariantsData, 
+    isLoading: variantsLoading,
+    isError: variantsError,
+    error: variantsErr,
+  } = useProductVariantsbyProductId(selectedProductId || "");
 
   const { data: searchResults, isLoading: isSearching } =
     useProductSearch(searchQuery);
@@ -33,16 +86,16 @@ const Dashboard = () => {
   );
   const [showDetailedPopup, setShowDetailedPopup] = useState(false);
   const [showCustomerForm, setShowCustomerForm] = useState(false);
-  const [selectedProduct] = useState(null as Product | null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | any>(null);
   const [customer, setCustomer] = useState(
     null as NewCustomer | ExistingCustomer | null
   );
   const [cart, setCart] = useState([] as Cart[]);
   const navigate = useNavigate();
-  const products = searchQuery ? searchResults : productsData?.products;
+  const products = searchQuery ? searchResults : productsData;
 
   useEffect(() => {
-    if (customer) setShowCustomerForm(false); 
+    if (customer) setShowCustomerForm(false);
   }, [customer]);
 
   const handleProceedToCheckout = () => {
@@ -64,32 +117,24 @@ const Dashboard = () => {
     // navigate("/payment");
   };
 
-  const categories = [
-    { id: 1, name: "All" },
-    { id: 2, name: "Sports" },
-    { id: 3, name: "Casual" },
-    { id: 4, name: "Formal" },
-  ];
-
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Cart) => {
     setCart((prevCart: Cart[]) => {
-      const existingItem = prevCart.find((item) => item.id === product.productId);
+      const existingItem = prevCart.find(
+        (item) => item.productId === product.productId
+      );
 
       if (existingItem) {
         return prevCart.map((item) =>
-          item.id === product.productId
+          item.productId === product.productId
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       } else {
         const newCartItem: Cart = {
-          id: product.productId,
-          name: product.productName,
-          category: (product.categoryId as unknown) as string,
-          price: product.sellingPrice,
-          stock: product.currentStock,
+          productId: product.productId,
+          productName: product.productName,
+          sellingPrice: product.sellingPrice,
           image: product.image,
-          description: product.description,
           quantity: 1,
         };
         return [...prevCart, newCartItem];
@@ -101,18 +146,18 @@ const Dashboard = () => {
     if (newQuantity < 1) return;
     setCart((prevCart) =>
       prevCart.map((item) =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
+        item.productId === id ? { ...item, quantity: newQuantity } : item
       )
     );
   };
 
   const removeFromCart = (id: string) => {
-    setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+    setCart((prevCart) => prevCart.filter((item) => item.productId !== id));
   };
 
   const calculations = useMemo(() => {
     const subtotal = cart.reduce(
-      (sum, item) => sum + item.price * item.quantity,
+      (sum, item) => sum + item.sellingPrice * item.quantity,
       0
     );
 
@@ -124,14 +169,16 @@ const Dashboard = () => {
     const matchesCategory =
       !selectedCategory ||
       product.categoryId ===
-        categories.find((c) => c.id === selectedCategory.id)?.name;
+        categoryData?.find((c) => c.categoryId === selectedCategory.categoryId)
+          ?.categoryName;
     const matchesSearch = product.productName
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
-  const outOfStockCount = products?.filter((p) => p.currentStock === 0).length ?? 0;
+  // const outOfStockCount =
+  //   products?.filter((p) => p.stockLevel === 0).length ?? 0;
 
   return (
     <div className="flex flex-row">
@@ -141,18 +188,29 @@ const Dashboard = () => {
         <div className="flex flex-row w-full">
           <div className="flex flex-col w-[75%] mt-1 ml-1">
             <div className="flex flex-row gap-2 my-3 ml-4">
-              {categories.map((cat) => (
+              {categoryLoading ? <div>Loading categories...</div> : null}
+              {categoryLoadError ? (
+                <div>Error loading categories {err?.message}</div>
+              ) : null}
+              {categoryData?.map((cat) => (
                 <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id === 1 ? null : cat)}
+                  key={cat.categoryId}
+                  onClick={() =>
+                    setSelectedCategory(
+                      cat.categoryId === selectedCategory?.categoryId
+                        ? null
+                        : cat
+                    )
+                  }
                   className={`rounded-xl px-4 py-2 text-sm transition-colors ${
-                    (cat.id === 1 && !selectedCategory) ||
-                    selectedCategory?.id === cat.id
+                    (cat.categoryId === selectedCategory?.categoryId &&
+                      !selectedCategory) ||
+                    selectedCategory?.categoryId === cat.categoryId
                       ? "bg-blue-600 text-white"
                       : "bg-white border text-gray-500 border-gray-200 hover:border-blue-300"
                   }`}
                 >
-                  {cat.name}
+                  {cat.categoryName}
                 </button>
               ))}
             </div>
@@ -167,11 +225,11 @@ const Dashboard = () => {
                 />
                 <i className="bx bx-search text-fontcolor pl-1"></i>
               </div>
-              {outOfStockCount > 0 && (
+              {/* {outOfStockCount > 0 && (
                 <div className="mt-2 mx-3 text-red-500 text-sm font-semibold whitespace-nowrap">
                   {outOfStockCount} Items out of stock
                 </div>
-              )}
+              )} */}
               <button
                 onClick={() => refetch()}
                 className="mt-4 px-4 py-2 bg-green-500 text-white rounded"
@@ -192,7 +250,10 @@ const Dashboard = () => {
                 >
                   <a
                     className="flex-shrink-0 cursor-pointer"
-                    onClick={() => setShowDetailedPopup(true)}
+                    onClick={() => {
+                      setSelectedProduct(prod);
+                      setShowDetailedPopup(true);
+                    }}
                   >
                     <img
                       src={new URL(prod.image, import.meta.url).href}
@@ -202,35 +263,52 @@ const Dashboard = () => {
                   </a>
                   <div className="flex flex-col gap-1 w-full">
                     {" "}
-                    {/* box right to picture */}
                     <div className="flex justify-between items-center">
                       <div className="flex flex-col pr-1">
                         <div className="text-md text-fontcolor font-semibold">
                           {prod.productName}
                         </div>
-                        <div className="text-sm text-fontcolor font-normal">
-                          {prod.categoryId}
+                        <div className="text-sm text-fontcolor font-normal py-2">
+                          {prod.productDescription}
                         </div>
                       </div>
-                      <div
-                        className={`text-sm pr-1 font-semibold mt-1 flex-shrink-0 
-                        ${prod.currentStock < 3 ? "text-red-500" : "text-green-500"}`}
-                      >
-                        Stock : {prod.currentStock}
-                      </div>
+                      {!prod.hasVariant && (
+                        <div
+                          className={`text-sm pr-1 font-semibold mt-1 flex-shrink-0 
+                        ${
+                          prod.stockLevel < 3
+                            ? "text-red-500"
+                            : "text-green-500"
+                        }`}
+                        >
+                          Stock : {prod.stockLevel}
+                        </div>
+                      )}
                     </div>
                     <hr className="border-t border-gray-300" />
                     <div className="flex justify-between">
                       <div className="font-bold text-sm text-primary">
                         Rs {prod.sellingPrice}.00
                       </div>
-                      <button
-                        onClick={() => addToCart(prod)}
-                        disabled={prod.currentStock === 0}
-                        className="rounded-xl bg-blue-200 text-primary font-semibold text-xs mt-2  px-3 py-2 hover:bg-blue-300 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                      >
-                        Add to Cart
-                      </button>
+                      {prod.hasVariant ? (
+                        <button
+                          onClick={() => {
+                            setSelectedProductId(prod.productId);
+                            setShowVariantPopup(true);
+                          }}
+                          className="rounded-xl bg-blue-200 text-primary font-semibold text-xs mt-2  px-3 py-2 hover:bg-blue-300 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        >
+                          Select Variant
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => addToCart(mapProductToCart(prod))}
+                          disabled={prod.stockLevel === 0}
+                          className="rounded-xl bg-blue-200 text-primary font-semibold text-xs mt-2  px-3 py-2 hover:bg-blue-300 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        >
+                          Add to Cart
+                        </button>
+                      )}
                     </div>
                   </div>
                   {showDetailedPopup && selectedProduct && (
@@ -246,7 +324,16 @@ const Dashboard = () => {
                           Product Details
                         </h2>
                         <img
-                          src={selectedProduct.image}
+                          src={
+                            selectedProduct.image &&
+                            typeof selectedProduct.image === "string" &&
+                            selectedProduct.image.startsWith("http")
+                              ? selectedProduct.image
+                              : new URL(
+                                  selectedProduct.image || prod.image,
+                                  import.meta.url
+                                ).href
+                          }
                           className="h-64 w-full object-contain mb-4"
                           alt={selectedProduct.productName}
                         />
@@ -254,28 +341,42 @@ const Dashboard = () => {
                           {selectedProduct.productName}
                         </p>
                         <p className="text-sm text-gray-600 mb-2">
-                          {selectedProduct.description}
+                          {selectedProduct.productDescription}
                         </p>
                         <p className="text-xl text-blue-600 font-bold mb-4">
-                          Rs {selectedProduct.sellingPrice.toFixed(2)}
+                          Rs{" "}
+                          {selectedProduct.sellingPrice?.toFixed
+                            ? selectedProduct.sellingPrice.toFixed(2)
+                            : selectedProduct.sellingPrice}
                         </p>
-                        <button
-                          onClick={() => {
-                            addToCart(selectedProduct);
-                            setShowDetailedPopup(false);
-                          }}
-                          disabled={selectedProduct.currentStock === 0}
-                          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white px-4 py-2 rounded-lg font-semibold"
-                        >
-                          {selectedProduct.currentStock === 0
-                            ? "Out of Stock"
-                            : "Add to Cart"}
-                        </button>
+
+                        
+                      {variantsLoading ? <div>Loading variants...</div> : null}
+                      {variantsError ? (
+                        <div>Error loading categories {variantsErr?.message}</div>
+                      ) : null}
                       </div>
                     </div>
                   )}
                 </div>
               ))}
+
+              {showVariantPopup && (
+                <ProductVariantCard
+                  variants={productVariantsData || []}
+                  onClose={() => setShowVariantPopup(false)}
+                  onAddToCart={(variant) => {
+                    addToCart(
+                      mapVariantToCart(
+                        variant,
+                        selectedProduct?.productName,
+                        selectedProduct?.image
+                      )
+                    );
+                    setShowVariantPopup(false);
+                  }}
+                />
+              )}
             </div>
             {/* Pagination */}
             <div className="mt-6 flex gap-2 justify-center">
@@ -289,7 +390,6 @@ const Dashboard = () => {
               <span className="px-4 py-2">Page {page}</span>
               <button
                 onClick={() => setPage((p) => p + 1)}
-                disabled={!productsData?.products.length}
                 className="px-4 py-2 border rounded"
               >
                 Next

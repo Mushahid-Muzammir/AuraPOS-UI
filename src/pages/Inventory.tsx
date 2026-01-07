@@ -1,16 +1,79 @@
 import { useState } from "react";
 import TopBar from "../components/common/TopBar";
 import SideBar from "../components/common/SideBar";
-import categories from "../data/categories.json";
-import { toast } from "sonner";
+import { useCreateProduct } from "../hooks/useProducts";
+import { useCategories } from "../hooks/useCategory";
+import type { CreateProduct } from "../interfaces/productInterface";
 
 const Inventory = () => {
-  const [selectedCategory] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState<Partial<CreateProduct>>({
+    productName: "",
+    brandId: 0,
+    categoryId: "",
+    subCategoryId: "", 
+    costPrice: 0,
+    sellingPrice: 0,
+    discountPrice: 0,
+    currentStock: 0,
+    image: "",
+    description: "",
+    barcode: "",
+    isActive: true,
+    isFeatured: false,
+  });
+  const createProductMutation = useCreateProduct();
 
-  const onProductAdd = () => {
-    toast.success("Product added successfully!");
-    setShowAddForm(false);
+  const {
+    data: categoryData,
+    isLoading: isCategoriesLoading,
+    isError,
+    error,
+  } = useCategories();  
+
+  const onProductAdd = async () => {
+    if (
+      !formData.productName ||
+      !formData.sellingPrice ||
+      formData.currentStock === undefined
+    ) {
+      return;
+    }
+    try {
+      await createProductMutation.mutateAsync({
+        productName: formData.productName,
+        brandId: formData.brandId || 0,
+        categoryId: formData.categoryId || "",
+        subCategoryId: formData.subCategoryId || "",
+        costPrice: formData.costPrice || 0,
+        sellingPrice: formData.sellingPrice || 0,
+        discountPrice: formData.discountPrice || 0,
+        currentStock: formData.currentStock || 0,
+        image: formData.image || "",
+        description: formData.description || "",
+        barcode: formData.barcode || "",
+        isActive: formData.isActive ?? true,
+        isFeatured: formData.isFeatured ?? false,
+      } as CreateProduct);
+      setShowAddForm(false);
+      setFormData({
+        productName: "",
+        brandId: 0,
+        categoryId: "",
+        subCategoryId: "",
+        costPrice: 0,
+        sellingPrice: 0,
+        discountPrice: 0,
+        currentStock: 0,
+        image: "",
+        description: "",
+        barcode: "",
+        isActive: true,
+        isFeatured: false,
+      });
+    } catch (error) {
+      // Error handling is done in the mutation
+    }
   };
 
   return (
@@ -21,20 +84,6 @@ const Inventory = () => {
         <div className="flex flex-row w-full">
           <div className="flex flex-col w-full mt-1 ml-1">
             <div className="flex flex-row justify-between items-center mt-3 mx-4 px-4 py-2">
-              <div className="flex flex-row gap-2">
-                {categories.map((cat) => (
-                  <div
-                    key={cat.id}
-                    className={`rounded-xl px-3 py-1 cursor-pointer ${
-                      selectedCategory === cat.id
-                        ? "bg-blue-100 text-primary"
-                        : "bg-white border text-gray-500 border-gray-200"
-                    }`}
-                  >
-                    {cat.name}
-                  </div>
-                ))}
-              </div>
               <button
                 className="px-6 py-3 bg-primary text-white text-base font-semibold rounded-lg"
                 onClick={() => setShowAddForm(true)}
@@ -49,40 +98,144 @@ const Inventory = () => {
                         <h2 className="text-3xl font-bold text-gray-800 mb-3">
                           Add New Product
                         </h2>
-                        <button className="text-gray-400 hover:text-gray-700 text-2xl">
+                        <button
+                          onClick={() => setShowAddForm(false)}
+                          className="text-gray-400 hover:text-gray-700 text-2xl"
+                        >
                           &times;
                         </button>
                       </div>
-                      <form className="space-y-4">
+                      <form
+                        className="space-y-4"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          onProductAdd();
+                        }}
+                      >
                         <div>
                           <label className="text-gray-700 font-medium block mb-1">
-                            Product Name
+                            Product Name *
                           </label>
                           <input
                             type="text"
                             placeholder="🔖 Enter product name"
+                            value={formData.productName || ""}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                productName: e.target.value,
+                              })
+                            }
+                            required
                             className="w-full p-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:outline-none"
                           />
                         </div>
 
                         <div>
                           <label className="text-gray-700 font-medium block mb-1">
-                            Brand Name
+                            Brand ID
+                          </label>
+                          <input
+                            type="number"
+                            placeholder="🏷️ Enter brand ID"
+                            value={formData.brandId || 0}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                brandId: parseInt(e.target.value) || 0,
+                              })
+                            }
+                            min="0"
+                            className="w-full p-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-gray-700 font-medium block mb-1">
+                            Cost Price
+                          </label>
+                          <input
+                            type="number"
+                            placeholder="💰 Enter cost price"
+                            value={formData.costPrice || 0}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                costPrice: parseFloat(e.target.value) || 0,
+                              })
+                            }
+                            min="0"
+                            step="0.01"
+                            className="w-full p-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-gray-700 font-medium block mb-1">
+                            Description
+                          </label>
+                          <textarea
+                            placeholder="📝 Enter product description"
+                            value={formData.description || ""}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                description: e.target.value,
+                              })
+                            }
+                            className="w-full p-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:outline-none"
+                            rows={3}
+                          />
+                        </div>
+                        <div>
+                          <label className="text-gray-700 font-medium block mb-1">
+                            Barcode
                           </label>
                           <input
                             type="text"
-                            placeholder="🏷️ Enter brand name"
+                            placeholder="📊 Enter barcode"
+                            value={formData.barcode || ""}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                barcode: e.target.value,
+                              })
+                            }
+                            className="w-full p-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-gray-700 font-medium block mb-1">
+                            Image URL
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="🖼️ Enter image URL"
+                            value={formData.image || ""}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                image: e.target.value,
+                              })
+                            }
                             className="w-full p-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:outline-none"
                           />
                         </div>
 
                         <div>
                           <label className="text-gray-700 font-medium block mb-1">
-                            Stock Amount
+                            Stock Amount *
                           </label>
                           <input
                             type="number"
                             placeholder="📦 Enter stock quantity"
+                            value={formData.currentStock || 0}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                currentStock: parseInt(e.target.value) || 0,
+                              })
+                            }
+                            required
+                            min="0"
                             className="w-full p-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:outline-none"
                           />
                         </div>
@@ -91,11 +244,23 @@ const Inventory = () => {
                           <label className="text-gray-700 font-medium block mb-1">
                             Select Category
                           </label>
-                          <select className="w-full p-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:outline-none">
+                          <select
+                            value={formData.categoryId || ""}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                categoryId: e.target.value,
+                              })
+                            }
+                            className="w-full p-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:outline-none"
+                          >
                             <option value="">📂 Select category</option>
-                            {categories.map((cat) => (
-                              <option key={cat.id} value={cat.name}>
-                                {cat.name}
+                            {categoryData?.map((cat) => (
+                              <option
+                                key={cat.categoryId}
+                                value={cat.categoryName}
+                              >
+                                {cat.categoryName}
                               </option>
                             ))}
                           </select>
@@ -103,22 +268,41 @@ const Inventory = () => {
 
                         <div>
                           <label className="text-gray-700 font-medium block mb-1">
-                            Minimum Price
+                            Selling Price *
                           </label>
                           <input
                             type="number"
                             placeholder="💰 Enter price"
+                            value={formData.sellingPrice || 0}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                sellingPrice: parseFloat(e.target.value) || 0,
+                              })
+                            }
+                            required
+                            min="0"
+                            step="0.01"
                             className="w-full p-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:outline-none"
                           />
                         </div>
 
                         <div>
                           <label className="text-gray-700 font-medium block mb-1">
-                            Reorder Level
+                            Discount Price
                           </label>
                           <input
                             type="number"
-                            placeholder="⚠️ Enter reorder level"
+                            placeholder="💰 Enter discount price"
+                            value={formData.discountPrice || 0}
+                            onChange={(e) =>
+                              setFormData({
+                                ...formData,
+                                discountPrice: parseFloat(e.target.value) || 0,
+                              })
+                            }
+                            min="0"
+                            step="0.01"
                             className="w-full p-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:outline-none"
                           />
                         </div>
@@ -132,10 +316,13 @@ const Inventory = () => {
                             Cancel
                           </button>
                           <button
-                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-                            onClick={() => onProductAdd()}
+                            type="submit"
+                            disabled={createProductMutation.isPending}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            Add Product
+                            {createProductMutation.isPending
+                              ? "Adding..."
+                              : "Add Product"}
                           </button>
                         </div>
                       </form>
@@ -158,15 +345,20 @@ const Inventory = () => {
               </div>
             </div>
             <div className="flex flex-wrap m-4 gap-4">
-              {categories.map((category) => (
+              {isCategoriesLoading && <div>Loading categories...</div>}
+              {isError && <div>Error: {error.message}</div>}
+
+              {categoryData?.map((category) => (
                 <div
-                  key={category.id}
+                  key={category.categoryId}
                   className="flex p-4 h-24  w-[24%] border flex-row justify-between rounded-2xl bg-white"
                 >
                   <div className="flex flex-col gap-3 justify-center">
-                    <div className="text-lg font-semibold">{category.name}</div>
+                    <div className="text-lg font-semibold">
+                      {category.categoryName}
+                    </div>
                     <div className="text-sm">
-                      <span className="text-blue-500">{category.count}</span>{" "}
+                      <span className="text-blue-500">{category.productCount}</span>{" "}
                       Items
                     </div>
                   </div>
@@ -186,6 +378,6 @@ const Inventory = () => {
       </div>
     </div>
   );
-}
+};
 
 export default Inventory;

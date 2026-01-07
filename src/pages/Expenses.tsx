@@ -6,44 +6,55 @@ import ExpenseTable from "../components/expense/ExpenseTable.tsx";
 import ExpenseFormModal from "../components/expense/ExpenseFormModal.tsx";
 import SearchAndFilterBar from "../components/common/SearchAndFilterBar.tsx";
 import Pagination from "../components/common/Pagination.tsx";
-import expensesData from "../data/expense.json";
-import { toast } from "sonner";
-import type { Expense, DataCard } from "../interfaces/expenseInterface.ts";
+import { useExpenses, useCreateExpense } from "../hooks/useExpenses";
+import type { DataCard } from "../interfaces/expenseInterface.ts";
 
 const Expenses = () => {
-  const [expenses, setExpenses] = useState<Expense[]>(
-    expensesData as Expense[]
-  );
   const [searchTerm, setSearchTerm] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showForm, setShowForm] = useState(false);
 
+  const { data: expensesData, isLoading, isError, error } = useExpenses({ 
+    page: currentPage, 
+    pageSize: 5,
+    search: searchTerm 
+  });
+  const createExpenseMutation = useCreateExpense();
+
+  const expenses = expensesData?.expenses || [];
+
   const rowsPerPage = 5;
 
+  // Calculate summary cards from expenses data
+  const today = new Date().toISOString().split('T')[0];
+  const todayExpenses = expenses.filter(e => e.date === today).reduce((sum, e) => sum + e.amount, 0);
+  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+  
   const displayDataCard: DataCard[] = [
     {
       title: "Today Expenses",
-      amount: 3200.0,
+      amount: todayExpenses,
       img: "images/expenses.svg",
       percentage: 9,
     },
     {
-      title: "Total Income",
-      amount: 1020.0,
+      title: "Total Expenses",
+      amount: totalExpenses,
       img: "images/revenue.svg",
       percentage: 5,
     },
     {
-      title: "Current Balance",
-      amount: 4220.0,
+      title: "Total Count",
+      amount: expenses.length,
       img: "images/sales.svg",
       percentage: 11,
     },
   ];
 
   const filteredExpenses = useMemo(() => {
+    if (!expenses) return [];
     return expenses.filter((item) => {
       const matchSearch =
         item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -58,16 +69,19 @@ const Expenses = () => {
     });
   }, [expenses, searchTerm, startDate, endDate]);
 
-  const totalPages = Math.ceil(filteredExpenses.length / rowsPerPage);
+  const totalPages = expensesData?.totalPages || Math.ceil(filteredExpenses.length / rowsPerPage);
   const currentData = filteredExpenses.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
   );
 
-  const handleAddExpense = (newExpense: Expense) => {
-    setExpenses([...expenses, newExpense]);
-    toast.success("Expense added successfully!");
-    setShowForm(false);
+  const handleAddExpense = async (newExpense: { description: string; amount: number; date: string }) => {
+    try {
+      await createExpenseMutation.mutateAsync(newExpense);
+      setShowForm(false);
+    } catch (error) {
+      // Error handling is done in the mutation
+    }
   };
 
   return (
@@ -93,20 +107,36 @@ const Expenses = () => {
               setEndDate={setEndDate}
             />
           </div>
-          <section className="mt-6 bg-white rounded-xl shadow-lg">
-            <ExpenseTable data={currentData} />
-          </section>
+          {isLoading ? (
+            <div className="p-4 text-center">Loading expenses...</div>
+          ) : isError ? (
+            <div className="p-4 text-center text-red-500">
+              Error: {error instanceof Error ? error.message : 'Failed to load expenses'}
+            </div>
+          ) : (
+            <>
+              <section className="mt-6 bg-white rounded-xl shadow-lg">
+                <ExpenseTable data={currentData} />
+              </section>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPrev={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-            onNext={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-            onPageSelect={setCurrentPage}
-          />
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPrev={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                onNext={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                onPageSelect={setCurrentPage}
+              />
+            </>
+          )}
         </main>
       </div>
 
+      <button
+        onClick={() => setShowForm(true)}
+        className="fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-full shadow-lg font-semibold"
+      >
+        + Add Expense
+      </button>
       {showForm && (
         <ExpenseFormModal
           onClose={() => setShowForm(false)}
